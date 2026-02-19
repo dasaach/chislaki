@@ -1,0 +1,91 @@
+#include <iostream>
+#include <fstream>
+#include <vector>
+#include <cmath>
+
+using namespace std;
+
+// Скалярное произведение
+double dot(const vector<double>& a, const vector<double>& b) {
+    double s = 0.0;
+    for (int i = 0; i < a.size(); i++)
+        s += a[i] * b[i];
+    return s;
+}
+
+// Матрица * вектор
+vector<double> matVec(const vector<vector<double>>& A,
+                      const vector<double>& x) {
+    int n = x.size();
+    vector<double> y(n, 0.0);
+
+    for (int i = 0; i < n; i++)
+        for (int j = 0; j < n; j++)
+            y[i] += A[i][j] * x[j];
+
+    return y;
+}
+
+// Норма
+double norm(const vector<double>& x) {
+    return sqrt(dot(x, x));
+}
+
+int main() {
+
+    ifstream fin("input.txt");
+    ofstream fout("output.txt");
+
+    int n;
+    fin >> n;
+
+    vector<vector<double>> A(n, vector<double>(n));
+
+    for (int i = 0; i < n; i++)
+        for (int j = 0; j < n; j++)
+            fin >> A[i][j];
+
+    vector<double> y_prev(n);
+    for (int i = 0; i < n; i++)
+        fin >> y_prev[i];
+
+    const double eps = 1e-8;
+    const int maxIter = 1000;
+
+    vector<double> y(n);
+    double lambda = 0.0, lambda_old = 0.0;
+
+    for (int k = 0; k < maxIter; k++) {
+
+        // y(k) = A * y(k-1)
+        y = matVec(A, y_prev);
+
+        // метод скалярных произведений
+        lambda = dot(y, y) / dot(y, y_prev);
+
+        // нормировка
+        double ny = norm(y);
+        for (int i = 0; i < n; i++)
+            y[i] /= ny;
+
+        if (fabs(lambda - lambda_old) < eps)
+            break;
+
+        lambda_old = lambda;
+        y_prev = y;
+    }
+
+    fout << "Largest eigenvalue:\n";
+    fout << lambda << endl << endl;
+
+    fout << "Eigenvector:\n";
+    for (int i = 0; i < n; i++)
+        fout << y[i] << " ";
+
+    fout << endl;
+
+    fin.close();
+    fout.close();
+
+    return 0;
+}
