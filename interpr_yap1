@@ -1,0 +1,22 @@
+n = input()
+
+count = [0] * 10
+for c in n:
+    count[int(c)] += 1
+
+odd = 0
+mid = ''
+for i in range(10):
+    if count[i] % 2 != 0:
+        odd += 1
+        mid = str(i)
+
+if odd > 1:
+    print("NO")
+else:
+    left = ''
+    for i in range(10):
+        left += str(i) * (count[i] // 2)
+
+    result = left + mid + left[::-1]
+    print(result)
