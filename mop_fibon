@@ -1,0 +1,35 @@
+def f(x):
+    return x**2 + 2  # функция
+
+def fibonacci(n):
+    fib = [1, 1]  # первые числа Фибоначчи
+    for i in range(2, n):
+        fib.append(fib[i-1] + fib[i-2])  # формула Fn = Fn-1 + Fn-2
+    return fib
+
+a = -3
+b = 7
+eps = 0.5
+
+fib = fibonacci(20)  # создаём список чисел Фибоначчи
+
+n = 0
+while fib[n] < (b - a) / eps:  # ищем нужное n
+    n += 1
+
+x1 = a + fib[n-2] / fib[n] * (b - a)  # первая точка
+x2 = a + fib[n-1] / fib[n] * (b - a)  # вторая точка
+
+for k in range(1, n-1):  # основной цикл
+    if f(x1) < f(x2):  # если слева лучше
+        b = x2         # сдвигаем правую границу
+        x2 = x1        # перенос точки
+        x1 = a + fib[n-k-2] / fib[n-k] * (b - a)  # новая точка
+    else:
+        a = x1         # сдвигаем левую границу
+        x1 = x2        # перенос точки
+        x2 = a + fib[n-k-1] / fib[n-k] * (b - a)  # новая точка
+
+x_min = (a + b) / 2  # результат
+print("x* =", x_min)
+print("f(x*) =", f(x_min))
