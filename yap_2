@@ -1,0 +1,21 @@
+N = int(input())
+#Создаем словарь, где:
+# ключ — имя файла
+# значение — множество разрешенных операций (R, W, X)
+files = {}
+for _ in range(N):
+    data = input().split()   # разбиваем строку по пробелам
+    filename = data[0]       # имя файла — первый элемент
+    operations = set(data[1:])  # остальные — операции, превращаем в множество
+    files[filename] = operations  # добавляем в словарь
+M = int(input())
+for _ in range(M):
+    request = input().split()  # читаем запрос
+    operation = request[0]     # операция (R, W, X)
+    filename = request[1]      # имя файла
+
+
+    if filename in files and operation in files[filename]:
+        print("OK")  
+    else:
+        print("Access denied")  
