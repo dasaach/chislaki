@@ -1,0 +1,97 @@
+#include <iostream>
+#include <fstream>
+#include <vector>
+#include <cmath>
+
+using namespace std;
+
+double dot(const vector<double>& a, const vector<double>& b) {
+    double sum = 0;
+    for (int i = 0; i < a.size(); i++) {
+        sum += a[i] * b[i];
+    }
+    return sum;
+}
+
+vector<double> multiply(const vector<vector<double>>& A, const vector<double>& x) {
+    int n = A.size();
+    vector<double> result(n, 0);
+
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < n; j++) {
+            result[i] += A[i][j] * x[j];
+        }
+    }
+    return result;
+}
+
+vector<double> normalize(const vector<double>& y) {
+    double norm = sqrt(dot(y, y));
+    vector<double> x(y.size());
+
+    for (int i = 0; i < y.size(); i++) {
+        x[i] = y[i] / norm;
+    }
+    return x;
+}
+
+int main() {
+    ifstream fin("input.txt");
+    ofstream fout("output.txt");
+
+    int n;
+    fin >> n;
+
+    vector<vector<double>> A(n, vector<double>(n));
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < n; j++) {
+            fin >> A[i][j];
+        }
+    }
+
+    vector<double> y(n);
+    for (int i = 0; i < n; i++) {
+        fin >> y[i];
+    }
+
+    double eps;
+    fin >> eps;
+
+    vector<double> x = normalize(y);
+
+    double lambda_old = 0;
+    double lambda = 0;
+
+    int k = 0;
+
+    while (true) {
+        k++;
+
+        y = multiply(A, x);
+
+        double s = dot(y, y);
+        double l = dot(y, x);
+
+        lambda = s / l;
+
+        x = normalize(y);
+
+        if (fabs(lambda - lambda_old) < eps)
+            break;
+
+        lambda_old = lambda;
+    }
+
+    fout << "Iterations: " << k << endl;
+    fout << "Eigenvalue (lambda): " << lambda << endl;
+
+    fout << "Eigenvector:" << endl;
+    for (double xi : x) {
+        fout << xi << " ";
+    }
+
+    fin.close();
+    fout.close();
+
+    return 0;
+}
