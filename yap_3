@@ -1,0 +1,28 @@
+def min_stops(D, start, end, stations):
+    stations = [start] + stations + [end]
+    n = len(stations)
+    stops = 0
+    current = 0
+
+    while current < n - 1:
+        last = current
+        while current < n - 1 and stations[current + 1] - stations[last] <= D:
+            current += 1
+        if current == last:
+            return -1
+        if current < n - 1:
+            stops += 1
+
+    return stops
+
+
+with open("input.txt", "r") as f:
+    D = int(f.readline())
+    start, end = map(int, f.readline().split())
+    N = int(f.readline())
+    stations = list(map(int, f.readline().split()))
+
+result = min_stops(D, start, end, stations)
+
+with open("output.txt", "w") as f:
+    f.write(str(result))
