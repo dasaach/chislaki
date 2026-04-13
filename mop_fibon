@@ -1,35 +1,53 @@
-def f(x):
-    return x**2 + 2  # функция
+#include <iostream>
+#include <vector>
+using namespace std;
 
-def fibonacci(n):
-    fib = [1, 1]  # первые числа Фибоначчи
-    for i in range(2, n):
-        fib.append(fib[i-1] + fib[i-2])  # формула Fn = Fn-1 + Fn-2
-    return fib
+double f(double x) {
+    return x * x + 2;
+}
 
-a = -3
-b = 7
-eps = 0.5
+int main() {
+    double a = -3, b = 7;
+    double eps = 0.01;
 
-fib = fibonacci(20)  # создаём список чисел Фибоначчи
+    vector<int> fib = {1, 1};
+    while (fib.back() < (b - a) / eps) {
+        fib.push_back(fib[fib.size() - 1] + fib[fib.size() - 2]);
+    }
 
-n = 0
-while fib[n] < (b - a) / eps:  # ищем нужное n
-    n += 1
+    int n = fib.size() - 1;
 
-x1 = a + fib[n-2] / fib[n] * (b - a)  # первая точка
-x2 = a + fib[n-1] / fib[n] * (b - a)  # вторая точка
+    double x1 = a + (double)fib[n - 2] / fib[n] * (b - a);
+    double x2 = a + (double)fib[n - 1] / fib[n] * (b - a);
 
-for k in range(1, n-1):  # основной цикл
-    if f(x1) < f(x2):  # если слева лучше
-        b = x2         # сдвигаем правую границу
-        x2 = x1        # перенос точки
-        x1 = a + fib[n-k-2] / fib[n-k] * (b - a)  # новая точка
-    else:
-        a = x1         # сдвигаем левую границу
-        x1 = x2        # перенос точки
-        x2 = a + fib[n-k-1] / fib[n-k] * (b - a)  # новая точка
+    int iter = 0;
 
-x_min = (a + b) / 2  # результат
-print("x* =", x_min)
-print("f(x*) =", f(x_min))
+    for (int k = 1; k < n; k++) {
+        iter++;
+
+        cout << "Итерация " << iter << endl;
+        cout << "a = " << a << ", b = " << b << endl;
+        cout << "x1 = " << x1 << ", x2 = " << x2 << endl;
+        cout << "f(x1) = " << f(x1) << ", f(x2) = " << f(x2) << endl;
+
+        if (f(x1) < f(x2)) {
+            b = x2;
+            x2 = x1;
+            x1 = a + (double)fib[n - k - 2] / fib[n - k] * (b - a);
+            cout << "Берем левую часть\n";
+        } else {
+            a = x1;
+            x1 = x2;
+            x2 = a + (double)fib[n - k - 1] / fib[n - k] * (b - a);
+            cout << "Берем правую часть\n";
+        }
+
+        cout << "Новый отрезок: [" << a << ", " << b << "]\n\n";
+    }
+
+    double xmin = (a + b) / 2;
+    cout << "Минимум примерно в x = " << xmin << endl;
+    cout << "f(x) = " << f(xmin) << endl;
+
+    return 0;
+}
