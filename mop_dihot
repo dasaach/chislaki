@@ -1,24 +1,43 @@
-def f(x):
-    return x**2 + 2
+#include <iostream>
+#include <cmath>
+using namespace std;
 
-a = -3
-b = 7
-eps = 0.5
+double f(double x) {
+    return x * x + 2;
+}
 
-while (b - a) > eps*2:
-    y = (a + b-eps) / 2
-    z = (a + b+eps) / 2
+int main() {
+    double a = -3, b = 7;
+    double eps = 0.01;
+    double delta = eps / 2;
+    int iter = 0;
 
-    if f(y) < f(z):
-        b = z
-        print("f(y)=",f(y)," <  f(z)=",f(z),"\n", "y=",y, "   b=z=",z, "   a=",a)
-        print("Длина",b-a,"\n")
-    else:
-        a = y
-        print("f(y)=",f(y),"  >=  f(z)=",f(z),"\n","    a=y=",y, "   z=",z, "   b=",b)
-        print("Длина",b-a,"\n")
+    while ((b - a) / 2 > eps) {
+        iter++;
 
+        double mid = (a + b) / 2;
+        double x1 = mid - delta;
+        double x2 = mid + delta;
 
-x_min = (a + b) / 2
-print("x* =", x_min,"+-",(b -a) / 2)
-print("f(x*) =", f(x_min))
+        cout << "Итерация " << iter << endl;
+        cout << "a = " << a << ", b = " << b << endl;
+        cout << "x1 = " << x1 << ", x2 = " << x2 << endl;
+        cout << "f(x1) = " << f(x1) << ", f(x2) = " << f(x2) << endl;
+
+        if (f(x1) < f(x2)) {
+            b = x2;
+            cout << "Берем левую часть\n";
+        } else {
+            a = x1;
+            cout << "Берем правую часть\n";
+        }
+
+        cout << "Новый отрезок: [" << a << ", " << b << "]\n\n";
+    }
+
+    double xmin = (a + b) / 2;
+    cout << "Минимум примерно в x = " << xmin << endl;
+    cout << "f(x) = " << f(xmin) << endl;
+
+    return 0;
+}
