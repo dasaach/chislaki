@@ -1,0 +1,171 @@
+import random
+
+
+class Painting:
+    def __init__(self, title, artist, year, style, price, authenticity_score=100):
+        self.title = title
+        self.artist = artist
+        self.year = year
+        self.style = style
+        self._price = 0
+        self.price = price
+        self._authenticity_score = 100
+        self.authenticity_score = authenticity_score
+
+    @property
+    def price(self):
+        return self._price
+
+    @price.setter
+    def price(self, value):
+        if value < 0:
+            raise ValueError("Price cannot be negative")
+        self._price = value
+
+    @property
+    def authenticity_score(self):
+        return self._authenticity_score
+
+    @authenticity_score.setter
+    def authenticity_score(self, value):
+        if not (0 <= value <= 100):
+            raise ValueError("Authenticity must be between 0 and 100")
+        self._authenticity_score = value
+
+    def change_price(self, value):
+        self.price = max(0, self.price + value)
+
+    def get_info(self):
+        return f"Название: {self.title}, Художник: {self.artist}, Год: {self.year}, Стиль: {self.style}"
+
+    def is_valuable(self):
+        return self.price > 100000
+
+    def estimate_shipping_cost(self, distance):
+        return self.price * 0.001 * distance
+
+    def appraise(self):
+        self.price = max(0, self.price * (1 + random.uniform(-0.1, 0.1)))
+        self.authenticity_score = max(
+            0, min(100, self.authenticity_score + random.uniform(-5, 5))
+        )
+        print(f"Новая стоимость: {self.price:.2f}")
+
+    def compare_to(self, other):
+        if self.price > other.price:
+            return f"{self.title} is more expensive than {other.title}"
+        elif self.price < other.price:
+            return f"{other.title} is more expensive than {self.title}"
+        else:
+            if self.style == other.style:
+                if self.year > other.year:
+                    return f"{self.title} is newer than {other.title}"
+                elif self.year < other.year:
+                    return f"{other.title} is newer than {self.title}"
+            return "They are equal"
+
+    def __add__(self, value):
+        if isinstance(value, (int, float)):
+            return Painting(
+                self.title,
+                self.artist,
+                self.year,
+                self.style,
+                max(0, self.price + value),
+                self.authenticity_score,
+            )
+        return NotImplemented
+
+    def __call__(self, coefficient):
+        return f"Estimated auction price: {self.price * coefficient:.2f}"
+
+    def __lt__(self, other):
+        return (
+            (-self.price, -self.authenticity_score, -self.year)
+            < (-other.price, -other.authenticity_score, -other.year)
+        )
+
+    def __str__(self):
+        return (
+            f"Painting '{self.title}' by {self.artist}, {self.year}, "
+            f"style: {self.style}, price: {self.price}, "
+            f"authenticity: {self.authenticity_score:.2f}%"
+        )
+
+
+class FakePainting(Painting):
+    def __init__(self, title, artist, year, style, price,
+                 original_artist, forgery_quality=None):
+        super().__init__(title, artist, year, style, price)
+        self.original_artist = original_artist
+        self.forgery_quality = (
+            forgery_quality if forgery_quality is not None
+            else random.randint(20, 80)
+        )
+
+    def reveal_original(self):
+        print(f"This painting is a fake! Original artist: {self.original_artist}")
+
+    def increase_forgery_quality(self, amount):
+        self.forgery_quality = min(100, self.forgery_quality + amount)
+        self.price += amount * 100
+
+    def appraise(self):
+        if random.random() < 0.1:
+            self.authenticity_score = 0
+            print("FAKE REVEALED! Authenticity dropped to 0!")
+        else:
+            super().appraise()
+
+    def __str__(self):
+        return (
+            super().__str__()
+            + f", fake of: {self.original_artist}, "
+              f"forgery quality: {self.forgery_quality}"
+        )
+
+
+if __name__ == "__main__":
+    print("=== Создание картин ===")
+    p1 = Painting("Starry Night", "Van Gogh", 1889, "Post-Impressionism", 200000)
+    p2 = Painting("Mona Lisa", "Da Vinci", 1503, "Renaissance", 500000)
+    fake = FakePainting("Fake Mona Lisa", "Unknown", 2020, "Renaissance", 10000, "Da Vinci")
+
+    print(p1)
+    print(p2)
+    print(fake)
+
+    print("\n=== Изменение цены ===")
+    p1.change_price(5000)
+    print(p1)
+
+    print("\n=== Проверка ценности ===")
+    print(p1.is_valuable())
+
+    print("\n=== Доставка ===")
+    print(p1.estimate_shipping_cost(100))
+
+    print("\n=== Оценка ===")
+    p1.appraise()
+
+    print("\n=== Сравнение ===")
+    print(p1.compare_to(p2))
+
+    print("\n=== Оператор + ===")
+    p3 = p1 + 10000
+    print(p3)
+
+    print("\n=== Вызов как функция ===")
+    print(p1(1.5))
+
+    print("\n=== Подделка ===")
+    fake.reveal_original()
+    fake.increase_forgery_quality(10)
+    print(fake)
+    fake.appraise()
+
+    print("\n=== Сортировка ===")
+    paintings = [p1, p2, fake]
+    paintings.sort()
+    for p in paintings:
+        print(p)
