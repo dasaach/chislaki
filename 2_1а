@@ -1,4 +1,142 @@
 // Метод Эйлера
+// Вывод таблиц для вставки в Excel
+// Ввод из файла input.txt
+// Вывод в output.txt
+
+#include <iostream>
+#include <fstream>
+#include <cmath>
+#include <iomanip>
+
+using namespace std;
+
+// ==========================
+// ОДУ:
+// y = x(y' - xcos(x))
+// =>
+// y' = y/x + x*cos(x)
+// ==========================
+
+double f(double x, double y)
+{
+    return y / x + x * cos(x);
+}
+
+// ==========================
+// Точное решение:
+// y = x(C + sin(x))
+// ==========================
+
+double exact_solution(double x, double C)
+{
+    return x * (C + sin(x));
+}
+
+// ==========================
+// Метод Эйлера
+// ==========================
+
+void euler_method(double x0,
+    double y0,
+    double xn,
+    double h,
+    double C,
+    ofstream& fout)
+{
+    double x = x0;
+    double y = y0;
+
+    fout << fixed << setprecision(4);
+
+    while (x <= xn + 1e-9)
+    {
+        double y_exact = exact_solution(x, C);
+        double delta = fabs(y - y_exact);
+
+        // Формат для Excel
+        fout << x << "\t"
+            << y << "\t"
+            << y_exact << "\t"
+            << delta << "\n";
+
+        // Следующий шаг
+        y = y + h * f(x, y);
+        x = x + h;
+    }
+}
+
+int main()
+{
+    ifstream fin("input.txt");
+    ofstream fout("output.txt");
+
+    if (!fin.is_open())
+    {
+        cout << "Ошибка открытия input.txt\n";
+        return 1;
+    }
+
+    // Ввод:
+    // x0 y0 xn h1 h2
+
+    double x0, y0, xn, h1, h2;
+
+    fin >> x0 >> y0 >> xn >> h1 >> h2;
+
+    // Находим константу C
+    // y0 = x0(C + sin(x0))
+    double C = y0 / x0 - sin(x0);
+
+    // ==========================
+    // Таблица для h1
+    // ==========================
+
+    fout << "h = " << h1 << "\n";
+    fout << "x\t y(h)\t y(точн)\t delta\n\n";
+
+    euler_method(x0, y0, xn, h1, C, fout);
+
+    fout << "\n\n";
+
+    // ==========================
+    // Таблица для h2
+    // ==========================
+
+    fout << "h = " << h2 << "\n";
+    fout << "x\t y(h)\t y(точн)\t delta\n\n";
+
+    euler_method(x0, y0, xn, h2, C, fout);
+
+    fin.close();
+    fout.close();
+
+    cout << "Готово. Результаты записаны в output.txt\n";
+
+    return 0;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// Метод Эйлера
 // y' - y = 2x - 3
 // y' = y + 2x - 3
 // Точное решение:
