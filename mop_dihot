@@ -7,9 +7,10 @@ double f(double x) {
 }
 
 int main() {
+    setlocale(LC_ALL, "ru");
     double a = -3, b = 7;
-    double eps = 0.01;
-    double delta = eps / 2;
+    double eps = 0.5;
+    double delta = eps/2;
     int iter = 0;
 
     while ((b - a) / 2 > eps) {
@@ -27,7 +28,8 @@ int main() {
         if (f(x1) < f(x2)) {
             b = x2;
             cout << "Берем левую часть\n";
-        } else {
+        }
+        else {
             a = x1;
             cout << "Берем правую часть\n";
         }
@@ -36,6 +38,7 @@ int main() {
     }
 
     double xmin = (a + b) / 2;
+    cout << "Погрешность " << abs((b - a) / 2) << "\n";
     cout << "Минимум примерно в x = " << xmin << endl;
     cout << "f(x) = " << f(xmin) << endl;
 
