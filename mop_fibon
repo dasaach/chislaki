@@ -1,5 +1,5 @@
 #include <iostream>
-#include <vector>
+#include <cmath>
 using namespace std;
 
 double f(double x) {
@@ -7,30 +7,17 @@ double f(double x) {
 }
 
 int main() {
+    setlocale(LC_ALL, "ru");
     double a = -3, b = 7;
     double eps = 0.5;
+    double phi = (1 + sqrt(5)) / 2;
 
-    vector<int> fib = {1, 1};
-    
-    // Защита: гарантируем минимум 3 числа Фибоначчи
-    while (fib.size() < 3 || fib.back() < (b - a) / eps) {
-        fib.push_back(fib[fib.size() - 1] + fib[fib.size() - 2]);
-    }
-
-    int n = fib.size() - 1;
-    
-    // Дополнительная проверка на допустимость индексов
-    if (n < 2) {
-        cout << "Ошибка: недостаточно чисел Фибоначчи" << endl;
-        return 1;
-    }
-
-    double x1 = a + (double)fib[n - 2] / fib[n] * (b - a);
-    double x2 = a + (double)fib[n - 1] / fib[n] * (b - a);
+    double x1 = b - (b - a) / phi;
+    double x2 = a + (b - a) / phi;
 
     int iter = 0;
 
-    for (int k = 1; k <= n - 1; k++) {  // безопасный диапазон
+    while (abs(b - a) > eps) {
         iter++;
 
         cout << "Итерация " << iter << endl;
@@ -41,23 +28,21 @@ int main() {
         if (f(x1) < f(x2)) {
             b = x2;
             x2 = x1;
-            if (n - k - 2 >= 0) {  // проверка индекса
-                x1 = a + (double)fib[n - k - 2] / fib[n - k] * (b - a);
-            }
-            cout << "Берем левую часть\n";
-        } else {
+            x1 = b - (b - a) / phi;
+            cout << "Сдвиг влево\n";
+        }
+        else {
             a = x1;
             x1 = x2;
-            if (n - k - 1 >= 0) {  // проверка индекса
-                x2 = a + (double)fib[n - k - 1] / fib[n - k] * (b - a);
-            }
-            cout << "Берем правую часть\n";
+            x2 = a + (b - a) / phi;
+            cout << "Сдвиг вправо\n";
         }
 
         cout << "Новый отрезок: [" << a << ", " << b << "]\n\n";
     }
 
     double xmin = (a + b) / 2;
+    cout<< "Погрешность "<< abs((b-a) / 2)<<"\n";
     cout << "Минимум примерно в x = " << xmin << endl;
     cout << "f(x) = " << f(xmin) << endl;
 
