@@ -7,8 +7,9 @@ double f(double x) {
 }
 
 int main() {
+    setlocale(LC_ALL, "ru");
     double a = -3, b = 7;
-    double eps = 0.01;
+    double eps = 0.5;
     double phi = (1 + sqrt(5)) / 2;
 
     double x1 = b - (b - a) / phi;
@@ -29,7 +30,8 @@ int main() {
             x2 = x1;
             x1 = b - (b - a) / phi;
             cout << "Сдвиг влево\n";
-        } else {
+        }
+        else {
             a = x1;
             x1 = x2;
             x2 = a + (b - a) / phi;
@@ -40,9 +42,9 @@ int main() {
     }
 
     double xmin = (a + b) / 2;
+    cout<< "Погрешность "<< abs((b-a) / 2)<<"\n";
     cout << "Минимум примерно в x = " << xmin << endl;
     cout << "f(x) = " << f(xmin) << endl;
 
     return 0;
 }
-
