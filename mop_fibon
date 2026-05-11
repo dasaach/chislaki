@@ -8,21 +8,29 @@ double f(double x) {
 
 int main() {
     double a = -3, b = 7;
-    double eps = 0.01;
+    double eps = 0.5;
 
     vector<int> fib = {1, 1};
-    while (fib.back() < (b - a) / eps) {
+    
+    // Защита: гарантируем минимум 3 числа Фибоначчи
+    while (fib.size() < 3 || fib.back() < (b - a) / eps) {
         fib.push_back(fib[fib.size() - 1] + fib[fib.size() - 2]);
     }
 
     int n = fib.size() - 1;
+    
+    // Дополнительная проверка на допустимость индексов
+    if (n < 2) {
+        cout << "Ошибка: недостаточно чисел Фибоначчи" << endl;
+        return 1;
+    }
 
     double x1 = a + (double)fib[n - 2] / fib[n] * (b - a);
     double x2 = a + (double)fib[n - 1] / fib[n] * (b - a);
 
     int iter = 0;
 
-    for (int k = 1; k < n; k++) {
+    for (int k = 1; k <= n - 1; k++) {  // безопасный диапазон
         iter++;
 
         cout << "Итерация " << iter << endl;
@@ -33,12 +41,16 @@ int main() {
         if (f(x1) < f(x2)) {
             b = x2;
             x2 = x1;
-            x1 = a + (double)fib[n - k - 2] / fib[n - k] * (b - a);
+            if (n - k - 2 >= 0) {  // проверка индекса
+                x1 = a + (double)fib[n - k - 2] / fib[n - k] * (b - a);
+            }
             cout << "Берем левую часть\n";
         } else {
             a = x1;
             x1 = x2;
-            x2 = a + (double)fib[n - k - 1] / fib[n - k] * (b - a);
+            if (n - k - 1 >= 0) {  // проверка индекса
+                x2 = a + (double)fib[n - k - 1] / fib[n - k] * (b - a);
+            }
             cout << "Берем правую часть\n";
         }
 
