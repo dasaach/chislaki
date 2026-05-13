@@ -1,0 +1,267 @@
+#include <iostream>
+#include <fstream>
+#include <iomanip>
+#include <cmath>
+#include <sstream>
+
+using namespace std;
+
+// ----------------------
+// Правая часть системы
+// ----------------------
+
+double f1(double t, double y1, double y2)
+{
+    return 2.0 * y2 - y1;
+}
+
+double f2(double t, double y1, double y2)
+{
+    return 4.0 * y2
+        - 3.0 * y1
+        + exp(3.0 * t) / (exp(2.0 * t) + 1.0);
+}
+
+// ----------------------
+// Замена . на ,
+// ----------------------
+
+string toComma(double value)
+{
+    ostringstream ss;
+
+    ss << fixed << setprecision(6) << value;
+
+    string s = ss.str();
+
+    for (char& c : s)
+    {
+        if (c == '.')
+            c = ',';
+    }
+
+    return s;
+}
+
+// ----------------------
+// Метод Эйлера
+// ----------------------
+
+void Euler(
+    ofstream& fout,
+    double h,
+    int steps,
+    double C1,
+    double C2)
+{
+    double x = 0.0;
+
+    // Начальные условия
+    double y1 =
+        C1
+        + 2.0 * C2
+        - log(2.0)
+        + 2.0 * atan(1.0);
+
+    double y2 =
+        C1
+        + 3.0 * C2
+        - log(2.0)
+        + 3.0 * atan(1.0);
+
+    fout << "x\t\tY1\t\tY2\n\n";
+
+    for (int i = 0; i <= steps; i++)
+    {
+        fout
+            << toComma(x) << "\t"
+            << toComma(y1) << "\t"
+            << toComma(y2) << "\n";
+
+        // Формулы Эйлера
+        double ny1 = y1 + h * f1(x, y1, y2);
+
+        double ny2 = y2 + h * f2(x, y1, y2);
+
+        y1 = ny1;
+        y2 = ny2;
+
+        x += h;
+    }
+}
+
+int main()
+{
+    ifstream fin("input.txt");
+    ofstream fout("output.txt");
+
+    if (!fin.is_open())
+    {
+        cout << "Ошибка открытия input.txt\n";
+        return 1;
+    }
+
+    if (!fout.is_open())
+    {
+        cout << "Ошибка открытия output.txt\n";
+        return 1;
+    }
+
+    double C1, C2;
+
+    fin >> C1 >> C2;
+
+    fout << "ЯВНЫЙ МЕТОД ЭЙЛЕРА\n\n";
+
+    fout << "h = 0.1\n\n";
+
+    Euler(fout, 0.1, 30, C1, C2);
+
+    fout << "\n\n";
+
+    fout << "h = 0.2\n\n";
+
+    Euler(fout, 0.2, 15, C1, C2);
+
+    fin.close();
+    fout.close();
+
+    cout << "Результат записан в output.txt\n";
+
+    return 0;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#include <iostream>
+#include <fstream>
+#include <iomanip>
+#include <cmath>
+#include <sstream>
+
+using namespace std;
+
+// Система ОДУ
+double f1(double y1, double y2, double y3)
+{
+    return 2 * y1 - y2 - y3;
+}
+
+double f2(double y1, double y2, double y3)
+{
+    return 3 * y1 - 2 * y2 - 3 * y3;
+}
+
+double f3(double y1, double y2, double y3)
+{
+    return 2 * y3 - y1 + y2;
+}
+
+// Замена точки на запятую
+string toComma(double value)
+{
+    ostringstream ss;
+
+    ss << fixed << setprecision(6) << value;
+
+    string s = ss.str();
+
+    for (char& c : s)
+    {
+        if (c == '.')
+            c = ',';
+    }
+
+    return s;
+}
+
+void Euler(ofstream& fout, double h, int steps)
+{
+    double x = 0.0;
+
+    // Начальные условия
+    double y1 = 2.0;
+    double y2 = 1.0;
+    double y3 = 1.0;
+
+    fout << "x\t\tY1\t\tY2\t\tY3\n\n";
+
+    for (int i = 0; i <= steps; i++)
+    {
+        fout
+            << toComma(x) << "\t"
+            << toComma(y1) << "\t"
+            << toComma(y2) << "\t"
+            << toComma(y3) << "\n";
+
+        // Метод Эйлера
+        double ny1 = y1 + h * f1(y1, y2, y3);
+        double ny2 = y2 + h * f2(y1, y2, y3);
+        double ny3 = y3 + h * f3(y1, y2, y3);
+
+        y1 = ny1;
+        y2 = ny2;
+        y3 = ny3;
+
+        x += h;
+    }
+}
+
+int main()
+{
+    ofstream fout("output.txt");
+
+    if (!fout.is_open())
+    {
+        cout << "Ошибка открытия файла\n";
+        return 1;
+    }
+
+    fout << "ЯВНЫЙ МЕТОД ЭЙЛЕРА\n\n";
+
+    fout << "Шаг h = 0.1\n\n";
+    Euler(fout, 0.1, 30);
+
+    fout << "\n\n";
+
+    fout << "Шаг h = 0.05\n\n";
+    Euler(fout, 0.05, 60);
+
+    fout.close();
+
+    cout << "Результат записан в output.txt\n";
+
+    return 0;
+}
