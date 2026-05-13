@@ -649,3 +649,116 @@
 
 </body>
 </html>
+
+
+
+
+
+
+# =========================
+# XML EXPORT для CLIENTS
+# =========================
+
+@app.get("/export/clients/xml")
+def export_clients_xml():
+    """Экспорт таблицы clients в XML"""
+
+    with get_db_connection() as conn:
+        cursor = conn.cursor()
+
+        cursor.execute("""
+            SELECT id, full_name, phone, email
+            FROM clients
+            ORDER BY id
+        """)
+
+        rows = cursor.fetchall()
+
+    # Создаём XML-документ
+    impl = minidom.getDOMImplementation()
+    doc = impl.createDocument(None, "clients", None)
+
+    root = doc.documentElement
+
+    for row in rows:
+        client_elem = doc.createElement("client")
+        client_elem.setAttribute("id", str(row["id"]))
+
+        # Имя клиента
+        name_elem = doc.createElement("full_name")
+        name_elem.appendChild(doc.createTextNode(row["full_name"]))
+        client_elem.appendChild(name_elem)
+
+        # Телефон
+        phone_elem = doc.createElement("phone")
+        phone_elem.appendChild(doc.createTextNode(row["phone"]))
+        client_elem.appendChild(phone_elem)
+
+        # Email
+        email_elem = doc.createElement("email")
+        email_elem.appendChild(doc.createTextNode(row["email"]))
+        client_elem.appendChild(email_elem)
+
+        root.appendChild(client_elem)
+
+    pretty_xml = doc.toprettyxml(indent="  ", encoding="utf-8")
+
+    return Response(
+        content=pretty_xml,
+        media_type="application/xml",
+        headers={
+            "Content-Disposition": "attachment; filename=clients.xml"
+        }
+    )
+
+
+# =========================
+# XML IMPORT для CLIENTS
+# =========================
+
+@app.post("/import/clients/xml")
+async def import_clients_xml(file: UploadFile = File(...)):
+    """Импорт клиентов из XML-файла"""
+
+    import xml.etree.ElementTree as ET
+
+    # Читаем загруженный файл
+    content = await file.read()
+
+    try:
+        # Парсим XML
+        tree = ET.ElementTree(ET.fromstring(content))
+        root = tree.getroot()
+
+        inserted_count = 0
+        errors = []
+
+        # Проходим по каждому клиенту
+        for client_elem in root.findall("client"):
+            try:
+                # Извлекаем данные
+                full_name = client_elem.find("full_name").text
+                phone = client_elem.find("phone").text
+                email = client_elem.find("email").text
+
+                # Проверяем, что поля не пустые
+                if not full_name or not phone or not email:
+                    errors.append(f"Пропущены обязательные поля в клиенте: {ET.tostring(client_elem, encoding='unicode')}")
+                    continue
+
+                # Вставляем в БД
+                _create_client_in_db(full_name, phone, email)
+                inserted_count += 1
+
+            except Exception as e:
+                errors.append(f"Ошибка при импорте клиента: {str(e)}")
+
+        return {
+            "message": f"Импортировано клиентов: {inserted_count}",
+            "errors": errors if errors else None
+        }
+
+    except ET.ParseError as e:
+        raise HTTPException(status_code=400, detail=f"Ошибка парсинга XML: {str(e)}")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Внутренняя ошибка: {str(e)}")
