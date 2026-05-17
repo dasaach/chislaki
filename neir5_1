@@ -1,0 +1,96 @@
+# !pip install torch torchvision
+
+import torch
+import torchvision
+from torchvision import transforms
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+%matplotlib inline
+
+# -----------------------------------
+# Подготовка данных
+# -----------------------------------
+
+transform = transforms.Compose(
+    [transforms.ToTensor()]
+)
+
+trainset = torchvision.datasets.FashionMNIST(
+    root='./data',
+    train=True,
+    download=True,
+    transform=transform
+)
+
+trainloader = torch.utils.data.DataLoader(
+    trainset,
+    batch_size=4,
+    shuffle=True,
+    num_workers=2
+)
+
+testset = torchvision.datasets.FashionMNIST(
+    root='./data',
+    train=False,
+    download=True,
+    transform=transform
+)
+
+testloader = torch.utils.data.DataLoader(
+    testset,
+    batch_size=4,
+    shuffle=False,
+    num_workers=2
+)
+
+# названия классов
+
+classes = (
+    'T-shirt/top',
+    'Trouser',
+    'Pullover',
+    'Dress',
+    'Coat',
+    'Sandal',
+    'Shirt',
+    'Sneaker',
+    'Bag',
+    'Ankle boot'
+)
+
+# -----------------------------------
+# 1. Сколько классов
+# -----------------------------------
+
+print("Количество классов:", len(classes))
+
+# -----------------------------------
+# 2. Сколько картинок
+# -----------------------------------
+
+print("Количество картинок в train:", len(trainset))
+print("Количество картинок в test:", len(testset))
+
+# -----------------------------------
+# 3. Вывод нескольких картинок
+# -----------------------------------
+
+dataiter = iter(trainloader)
+
+images, labels = next(dataiter)
+
+plt.figure(figsize=(10, 5))
+
+for i in range(4):
+
+    plt.subplot(1, 4, i + 1)
+
+    plt.imshow(images[i].squeeze(), cmap='gray')
+
+    plt.title(classes[labels[i]])
+
+    plt.axis('off')
+
+plt.show()
