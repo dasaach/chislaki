@@ -1,0 +1,35 @@
+def f(x):
+    return x**2 + 2
+
+def fibonacci(n):
+    fib = [1, 1]
+    for i in range(2, n):
+        fib.append(fib[i-1] + fib[i-2])
+    return fib
+
+a = -3
+b = 7
+eps = 0.5
+
+# найдём n
+fib = fibonacci(20)
+n = 0
+while fib[n] < (b - a) / eps:
+    n += 1
+
+x1 = a + fib[n-2] / fib[n] * (b - a)
+x2 = a + fib[n-1] / fib[n] * (b - a)
+
+for k in range(1, n-1):
+    if f(x1) < f(x2):
+        b = x2
+        x2 = x1
+        x1 = a + fib[n-k-2] / fib[n-k] * (b - a)
+    else:
+        a = x1
+        x1 = x2
+        x2 = a + fib[n-k-1] / fib[n-k] * (b - a)
+
+x_min = (a + b) / 2
+print("x* =", x_min)
+print("f(x*) =", f(x_min))
