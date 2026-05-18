@@ -1,0 +1,106 @@
+#include <iostream>
+#include <iomanip>
+#include <cmath>
+
+using namespace std;
+
+double f(double x1, double x2)
+{
+    return x1*x1 + 4*x2*x2 + x1*x2 + x1;
+}
+
+double df_dx1(double x1, double x2)
+{
+    return 2*x1 + x2 + 1;
+}
+
+double df_dx2(double x1, double x2)
+{
+    return x1 + 8*x2;
+}
+
+int main()
+{
+    double x1 = 3;
+    double x2 = 1;
+
+    double eps = 0.0001;
+
+    cout << fixed << setprecision(6);
+
+    double g1 = df_dx1(x1,x2);
+    double g2 = df_dx2(x1,x2);
+
+    double d1 = -g1;
+    double d2 = -g2;
+
+    int iter = 0;
+
+    while(true)
+    {
+        double norm = sqrt(g1*g1 + g2*g2);
+
+        cout << "\n=================================\n";
+        cout << "Итерация: " << iter << endl;
+
+        cout << "x1 = " << x1 << endl;
+        cout << "x2 = " << x2 << endl;
+
+        cout << "\nГрадиент:\n";
+        cout << "g1 = " << g1 << endl;
+        cout << "g2 = " << g2 << endl;
+
+        if(norm < eps)
+        {
+            cout << "\nМинимум найден.\n";
+            break;
+        }
+
+        // Hessian
+        double H11 = 2;
+        double H12 = 1;
+        double H21 = 1;
+        double H22 = 8;
+
+        double numerator =
+            -(g1*d1 + g2*d2);
+
+        double denominator =
+            d1*(H11*d1 + H12*d2) +
+            d2*(H21*d1 + H22*d2);
+
+        double alpha = numerator / denominator;
+
+        cout << "\nalpha = " << alpha << endl;
+
+        x1 = x1 + alpha*d1;
+        x2 = x2 + alpha*d2;
+
+        cout << "\nНовая точка:\n";
+        cout << "x1 = " << x1 << endl;
+        cout << "x2 = " << x2 << endl;
+
+        double new_g1 = df_dx1(x1,x2);
+        double new_g2 = df_dx2(x1,x2);
+
+        double beta =
+            (new_g1*new_g1 + new_g2*new_g2) /
+            (g1*g1 + g2*g2);
+
+        cout << "\nbeta = " << beta << endl;
+
+        d1 = -new_g1 + beta*d1;
+        d2 = -new_g2 + beta*d2;
+
+        g1 = new_g1;
+        g2 = new_g2;
+
+        iter++;
+    }
+
+    cout << "\n=============================\n";
+    cout << "Ответ:\n";
+    cout << "x1 = " << x1 << endl;
+    cout << "x2 = " << x2 << endl;
+    cout << "f = " << f(x1,x2) << endl;
+}
