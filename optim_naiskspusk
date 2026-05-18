@@ -1,0 +1,95 @@
+#include <iostream>
+#include <iomanip>
+#include <cmath>
+
+using namespace std;
+
+double f(double x1, double x2)
+{
+    return x1*x1 + 4*x2*x2 + x1*x2 + x1;
+}
+
+double df_dx1(double x1, double x2)
+{
+    return 2*x1 + x2 + 1;
+}
+
+double df_dx2(double x1, double x2)
+{
+    return x1 + 8*x2;
+}
+
+int main()
+{
+    double x1 = 3.0;
+    double x2 = 1.0;
+
+    double eps = 0.0001;
+
+    int iter = 0;
+
+    cout << fixed << setprecision(6);
+
+    while(true)
+    {
+        double g1 = df_dx1(x1, x2);
+        double g2 = df_dx2(x1, x2);
+
+        double norm = sqrt(g1*g1 + g2*g2);
+
+        cout << "\n====================================\n";
+        cout << "Итерация: " << iter << endl;
+
+        cout << "Точка:\n";
+        cout << "x1 = " << x1 << endl;
+        cout << "x2 = " << x2 << endl;
+
+        cout << "\nГрадиент:\n";
+        cout << "g1 = " << g1 << endl;
+        cout << "g2 = " << g2 << endl;
+
+        cout << "\nНорма градиента = " << norm << endl;
+
+        if(norm < eps)
+        {
+            cout << "\nМинимум найден.\n";
+            break;
+        }
+
+        // шаг alpha
+        double numerator = g1*g1 + g2*g2;
+
+        double h11 = 2;
+        double h12 = 1;
+        double h21 = 1;
+        double h22 = 8;
+
+        double denominator =
+            h11*g1*g1 +
+            (h12+h21)*g1*g2 +
+            h22*g2*g2;
+
+        double alpha = numerator / denominator;
+
+        cout << "\nШаг alpha:\n";
+        cout << "alpha = " << alpha << endl;
+
+        double new_x1 = x1 - alpha*g1;
+        double new_x2 = x2 - alpha*g2;
+
+        cout << "\nНовая точка:\n";
+        cout << "x1_new = " << new_x1 << endl;
+        cout << "x2_new = " << new_x2 << endl;
+
+        x1 = new_x1;
+        x2 = new_x2;
+
+        iter++;
+    }
+
+    cout << "\n==============================\n";
+    cout << "Ответ:\n";
+    cout << "x1 = " << x1 << endl;
+    cout << "x2 = " << x2 << endl;
+    cout << "f = " << f(x1,x2) << endl;
+}
