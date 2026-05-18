@@ -1,0 +1,142 @@
+# -----------------------------------
+# LeakyReLU вместо ReLU
+# -----------------------------------
+
+def leaky_relu(x, alpha=0.01):
+    return np.where(x > 0, x, alpha * x)
+
+class NeuronLeakyReLU:
+
+    def __init__(self, w=None, b=0, alpha=0.01):
+
+        self.w = w
+
+        self.b = b
+
+        self.alpha = alpha
+
+    def forward_pass(self, X):
+
+        z = X @ self.w + self.b
+
+        return leaky_relu(z, self.alpha)
+
+    def backward_pass(self, X, y, y_pred, learning_rate=0.01):
+
+        n = len(y)
+
+        y = np.array(y).reshape(-1, 1)
+
+        z = X @ self.w + self.b
+
+        # производная LeakyReLU
+        leaky_grad = np.where(z > 0, 1, self.alpha)
+
+        error = y_pred - y
+
+        dw = (X.T @ (error * leaky_grad)) / n
+
+        db = np.mean(error * leaky_grad)
+
+        self.w -= learning_rate * dw
+
+        self.b -= learning_rate * db
+
+    def fit(self, X, y, num_epochs=500, learning_rate=0.01):
+
+        self.w = np.random.randn(X.shape[1], 1) * 0.01
+
+        self.b = np.random.randn(1) * 0.01
+
+        losses = []
+
+        for i in range(num_epochs):
+
+            y_pred = self.forward_pass(X)
+
+            losses.append(Loss(y_pred, y))
+
+            self.backward_pass(X, y, y_pred, learning_rate)
+
+        return losses
+
+# -----------------------------------
+# Загрузка данных
+# -----------------------------------
+
+data = pd.read_csv('voice.csv')
+
+data['label'] = data['label'].apply(
+    lambda x: 1 if x == 'male' else 0
+)
+
+X = data.drop('label', axis=1).values
+
+y = data['label'].values
+
+# -----------------------------------
+# Разделение
+# -----------------------------------
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X,
+    y,
+    test_size=0.3,
+    random_state=42
+)
+
+# -----------------------------------
+# Нормализация
+# -----------------------------------
+
+scaler = StandardScaler()
+
+X_train = scaler.fit_transform(X_train)
+
+X_test = scaler.transform(X_test)
+
+# -----------------------------------
+# Обучение своего перцептрона
+# -----------------------------------
+
+print("Обучаем NeuronLeakyReLU...")
+
+neuron = NeuronLeakyReLU(alpha=0.01)
+
+neuron.fit(X_train, y_train, num_epochs=300)
+
+# -----------------------------------
+# Предсказание
+# -----------------------------------
+
+y_pred_my = neuron.forward_pass(X_test)
+
+y_pred_my = (y_pred_my > 0.5).astype(int).ravel()
+
+acc_my = accuracy_score(y_test, y_pred_my)
+
+print(f"NeuronLeakyReLU: {acc_my:.4f} ({acc_my*100:.2f}%)")
+
+# -----------------------------------
+# sklearn perceptron
+# -----------------------------------
+
+print("\nОбучаем Sklearn Perceptron...")
+
+sk_perceptron = skPerceptron(random_state=42)
+
+sk_perceptron.fit(X_train, y_train)
+
+y_pred_sk = sk_perceptron.predict(X_test)
+
+acc_sk = accuracy_score(y_test, y_pred_sk)
+
+print(f"Sklearn Perceptron: {acc_sk:.4f} ({acc_sk*100:.2f}%)")
+
+# -----------------------------------
+# Итоговое сравнение
+# -----------------------------------
+
+print(f"\nNeuronLeakyReLU: {acc_my*100:.2f}%")
+
+print(f"Sklearn:          {acc_sk*100:.2f}%")
