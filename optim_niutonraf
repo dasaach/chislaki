@@ -1,0 +1,89 @@
+#include <iostream>
+#include <iomanip>
+#include <cmath>
+
+using namespace std;
+
+double f(double x1, double x2)
+{
+    return x1*x1 + 4*x2*x2 + x1*x2 + x1;
+}
+
+double df_dx1(double x1, double x2)
+{
+    return 2*x1 + x2 + 1;
+}
+
+double df_dx2(double x1, double x2)
+{
+    return x1 + 8*x2;
+}
+
+int main()
+{
+    double x1 = 3;
+    double x2 = 1;
+
+    double eps = 0.0001;
+
+    double alpha = 0.5;
+
+    cout << fixed << setprecision(6);
+
+    double det = 15;
+
+    double invH[2][2] =
+    {
+        {8.0/det, -1.0/det},
+        {-1.0/det, 2.0/det}
+    };
+
+    int iter = 0;
+
+    while(true)
+    {
+        double g1 = df_dx1(x1,x2);
+        double g2 = df_dx2(x1,x2);
+
+        double norm = sqrt(g1*g1 + g2*g2);
+
+        cout << "\n===================================\n";
+        cout << "Итерация: " << iter << endl;
+
+        cout << "x1 = " << x1 << endl;
+        cout << "x2 = " << x2 << endl;
+
+        if(norm < eps)
+        {
+            cout << "\nМинимум найден.\n";
+            break;
+        }
+
+        double d1 =
+            invH[0][0]*g1 +
+            invH[0][1]*g2;
+
+        double d2 =
+            invH[1][0]*g1 +
+            invH[1][1]*g2;
+
+        cout << "\nНаправление:\n";
+        cout << "d1 = " << d1 << endl;
+        cout << "d2 = " << d2 << endl;
+
+        x1 = x1 - alpha*d1;
+        x2 = x2 - alpha*d2;
+
+        cout << "\nНовая точка:\n";
+        cout << "x1 = " << x1 << endl;
+        cout << "x2 = " << x2 << endl;
+
+        iter++;
+    }
+
+    cout << "\n=============================\n";
+    cout << "Ответ:\n";
+    cout << "x1 = " << x1 << endl;
+    cout << "x2 = " << x2 << endl;
+    cout << "f = " << f(x1,x2) << endl;
+}
