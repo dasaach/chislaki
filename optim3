@@ -1,0 +1,124 @@
+#include <iostream>
+#include <iomanip>
+#include <cmath>
+
+using namespace std;
+
+// Функция
+double f(double x1, double x2)
+{
+    return x1 * x1 + 4 * x2 * x2 + x1 * x2 + x1;
+}
+
+// Производная по x1
+double df_dx1(double x1, double x2)
+{
+    return 2 * x1 + x2 + 1;
+}
+
+// Производная по x2
+double df_dx2(double x1, double x2)
+{
+    return 8 * x2 + x1;
+}
+
+int main()
+{
+    setlocale(LC_ALL, "Russian");
+
+    // Начальная точка
+    double x1 = 3.0;
+    double x2 = 1.0;
+
+    // Точность
+    double eps = 0.0001;
+
+    // Шаг
+    double alpha = 0.1;
+
+    int iter = 0;
+
+    cout << fixed << setprecision(6);
+
+    cout << "Метод градиентного спуска\n";
+    cout << "Функция:\n";
+    cout << "f(x1, x2) = x1^2 + 4*x2^2 + x1*x2 + x1\n\n";
+
+    cout << "Начальная точка:\n";
+    cout << "x0 = (" << x1 << ", " << x2 << ")\n\n";
+
+    while (true)
+    {
+        // Вычисляем градиент
+        double g1 = df_dx1(x1, x2);
+        double g2 = df_dx2(x1, x2);
+
+        // Норма градиента
+        double norm = sqrt(g1 * g1 + g2 * g2);
+
+        // Значение функции
+        double fx = f(x1, x2);
+
+        // Вывод итерации
+        cout << "========================================\n";
+        cout << "Итерация: " << iter << endl;
+
+        cout << "Текущая точка:\n";
+        cout << "x1 = " << x1 << endl;
+        cout << "x2 = " << x2 << endl;
+
+        cout << "\nЗначение функции:\n";
+        cout << "f(x1, x2) = " << fx << endl;
+
+        cout << "\nГрадиент:\n";
+        cout << "df/dx1 = 2*x1 + x2 + 1 = " << g1 << endl;
+        cout << "df/dx2 = 8*x2 + x1 = " << g2 << endl;
+
+        cout << "\nНорма градиента:\n";
+        cout << "||grad f|| = " << norm << endl;
+
+        // Проверка условия остановки
+        if (norm < eps)
+        {
+            cout << "\nТочность достигнута.\n";
+            break;
+        }
+
+        // Новые значения
+        double new_x1 = x1 - alpha * g1;
+        double new_x2 = x2 - alpha * g2;
+
+        cout << "\nОбновление точки:\n";
+        cout << "x1_new = x1 - alpha * df/dx1\n";
+        cout << "x1_new = " << x1 << " - "
+             << alpha << " * " << g1
+             << " = " << new_x1 << endl;
+
+        cout << "\n";
+        cout << "x2_new = x2 - alpha * df/dx2\n";
+        cout << "x2_new = " << x2 << " - "
+             << alpha << " * " << g2
+             << " = " << new_x2 << endl;
+
+        // Переход к новой точке
+        x1 = new_x1;
+        x2 = new_x2;
+
+        iter++;
+
+        // Ограничение числа итераций
+        if (iter > 1000)
+        {
+            cout << "Слишком много итераций.\n";
+            break;
+        }
+    }
+
+    cout << "\n========================================\n";
+    cout << "Минимум найден:\n";
+    cout << "x1 = " << x1 << endl;
+    cout << "x2 = " << x2 << endl;
+    cout << "f(x1, x2) = " << f(x1, x2) << endl;
+
+    return 0;
+}
