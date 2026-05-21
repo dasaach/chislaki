@@ -1,0 +1,137 @@
+#include <iostream>
+#include <fstream>
+#include <cmath>
+
+using namespace std;
+
+// Правая часть уравнения y'' = p(x)*y + f(x)
+
+// p(x)
+double p(double x)
+{
+    return x; // пример: p(x)=x
+}
+
+// f(x)
+double func(double x)
+{
+    return x * x; // пример: f(x)=x^2
+}
+
+// Система:
+// y1' = y2
+// y2' = p(x)*y1 + f(x)
+
+double F1(double x, double y1, double y2)
+{
+    return y2;
+}
+
+double F2(double x, double y1, double y2)
+{
+    return p(x) * y1 + func(x);
+}
+
+// Решение методом Рунге-Кутты
+double rungeKutta(double a, double b, double alpha,
+                  double t, int n)
+{
+    double h = (b - a) / n;
+
+    double x = a;
+    double y1 = alpha;
+    double y2 = t;
+
+    for (int i = 0; i < n; i++)
+    {
+        double k1y1 = h * F1(x, y1, y2);
+        double k1y2 = h * F2(x, y1, y2);
+
+        double k2y1 = h * F1(x + h / 2,
+                             y1 + k1y1 / 2,
+                             y2 + k1y2 / 2);
+
+        double k2y2 = h * F2(x + h / 2,
+                             y1 + k1y1 / 2,
+                             y2 + k1y2 / 2);
+
+        double k3y1 = h * F1(x + h / 2,
+                             y1 + k2y1 / 2,
+                             y2 + k2y2 / 2);
+
+        double k3y2 = h * F2(x + h / 2,
+                             y1 + k2y1 / 2,
+                             y2 + k2y2 / 2);
+
+        double k4y1 = h * F1(x + h,
+                             y1 + k3y1,
+                             y2 + k3y2);
+
+        double k4y2 = h * F2(x + h,
+                             y1 + k3y1,
+                             y2 + k3y2);
+
+        y1 += (k1y1 + 2 * k2y1 + 2 * k3y1 + k4y1) / 6;
+        y2 += (k1y2 + 2 * k2y2 + 2 * k3y2 + k4y2) / 6;
+
+        x += h;
+    }
+
+    return y1;
+}
+
+int main()
+{
+    ifstream fin("input.txt");
+    ofstream fout("output.txt");
+
+    double a, b;
+    double alpha, beta;
+    int n;
+    double eps;
+
+    fin >> a >> b;
+    fin >> alpha >> beta;
+    fin >> n;
+    fin >> eps;
+
+    // Начальные границы для y'(a)
+    double t1 = -100;
+    double t2 = 100;
+
+    double F_t1 = rungeKutta(a, b, alpha, t1, n) - beta;
+    double F_t2 = rungeKutta(a, b, alpha, t2, n) - beta;
+
+    // Метод дихотомии
+    while (fabs(t2 - t1) > eps)
+    {
+        double tm = (t1 + t2) / 2;
+
+        double F_tm = rungeKutta(a, b, alpha, tm, n) - beta;
+
+        if (F_t1 * F_tm < 0)
+        {
+            t2 = tm;
+            F_t2 = F_tm;
+        }
+        else
+        {
+            t1 = tm;
+            F_t1 = F_tm;
+        }
+    }
+
+    double t = (t1 + t2) / 2;
+
+    fout << "Приближенное значение y'(a): "
+         << t << endl;
+
+    fout << "y(b) = "
+         << rungeKutta(a, b, alpha, t, n)
+         << endl;
+
+    fin.close();
+    fout.close();
+
+    return 0;
+}
