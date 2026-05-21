@@ -16,22 +16,25 @@ double func(double x)
     return x * x;
 }
 
+// y1' = y2
 double F1(double x, double y1, double y2)
 {
     return y2;
 }
 
+// y2' = p(x)*y1 + f(x)
 double F2(double x, double y1, double y2)
 {
     return p(x) * y1 + func(x);
 }
 
-// Метод Рунге-Кутты с выводом таблицы
+// Метод Рунге-Кутты
 double rungeKutta(double a, double b,
                   double alpha,
                   double t,
                   int n,
-                  ofstream& fout)
+                  ofstream &fout,
+                  bool print)
 {
     double h = (b - a) / n;
 
@@ -39,11 +42,12 @@ double rungeKutta(double a, double b,
     double y1 = alpha;
     double y2 = t;
 
-    fout << "x\t\t y(x)\t\t y'(x)" << endl;
-
-    fout << x << "\t\t"
-         << y1 << "\t\t"
-         << y2 << endl;
+    // Вывод заголовка
+    if (print)
+    {
+        fout << "x\t\tu(x)" << endl;
+        fout << x << "\t\t" << y1 << endl;
+    }
 
     for (int i = 0; i < n; i++)
     {
@@ -82,9 +86,11 @@ double rungeKutta(double a, double b,
 
         x += h;
 
-        fout << x << "\t\t"
-             << y1 << "\t\t"
-             << y2 << endl;
+        // Вывод только x и u(x)
+        if (print)
+        {
+            fout << x << "\t\t" << y1 << endl;
+        }
     }
 
     return y1;
@@ -109,23 +115,18 @@ int main()
     double t2 = 100;
 
     double F_t1 = rungeKutta(a, b, alpha,
-                             t1, n, fout) - beta;
-
-    fout << endl;
+                             t1, n, fout, false) - beta;
 
     double F_t2 = rungeKutta(a, b, alpha,
-                             t2, n, fout) - beta;
+                             t2, n, fout, false) - beta;
 
+    // Метод дихотомии
     while (fabs(t2 - t1) > eps)
     {
         double tm = (t1 + t2) / 2;
 
-        ofstream temp("temp.txt");
-
         double F_tm = rungeKutta(a, b, alpha,
-                                 tm, n, temp) - beta;
-
-        temp.close();
+                                 tm, n, fout, false) - beta;
 
         if (F_t1 * F_tm < 0)
         {
@@ -141,14 +142,11 @@ int main()
 
     double t = (t1 + t2) / 2;
 
-    fout << endl;
-    fout << "Найденное значение y'(a): "
-         << t << endl << endl;
+    fout << "Таблица решения:" << endl << endl;
 
-    fout << "Финальное решение:" << endl;
-
+    // Финальный вывод
     rungeKutta(a, b, alpha,
-               t, n, fout);
+               t, n, fout, true);
 
     fin.close();
     fout.close();
