@@ -4,23 +4,17 @@
 
 using namespace std;
 
-// Правая часть уравнения y'' = p(x)*y + f(x)
-
 // p(x)
 double p(double x)
 {
-    return x; // пример: p(x)=x
+    return x;
 }
 
 // f(x)
 double func(double x)
 {
-    return x * x; // пример: f(x)=x^2
+    return x * x;
 }
-
-// Система:
-// y1' = y2
-// y2' = p(x)*y1 + f(x)
 
 double F1(double x, double y1, double y2)
 {
@@ -32,15 +26,24 @@ double F2(double x, double y1, double y2)
     return p(x) * y1 + func(x);
 }
 
-// Решение методом Рунге-Кутты
-double rungeKutta(double a, double b, double alpha,
-                  double t, int n)
+// Метод Рунге-Кутты с выводом таблицы
+double rungeKutta(double a, double b,
+                  double alpha,
+                  double t,
+                  int n,
+                  ofstream& fout)
 {
     double h = (b - a) / n;
 
     double x = a;
     double y1 = alpha;
     double y2 = t;
+
+    fout << "x\t\t y(x)\t\t y'(x)" << endl;
+
+    fout << x << "\t\t"
+         << y1 << "\t\t"
+         << y2 << endl;
 
     for (int i = 0; i < n; i++)
     {
@@ -71,10 +74,17 @@ double rungeKutta(double a, double b, double alpha,
                              y1 + k3y1,
                              y2 + k3y2);
 
-        y1 += (k1y1 + 2 * k2y1 + 2 * k3y1 + k4y1) / 6;
-        y2 += (k1y2 + 2 * k2y2 + 2 * k3y2 + k4y2) / 6;
+        y1 += (k1y1 + 2 * k2y1 +
+               2 * k3y1 + k4y1) / 6;
+
+        y2 += (k1y2 + 2 * k2y2 +
+               2 * k3y2 + k4y2) / 6;
 
         x += h;
+
+        fout << x << "\t\t"
+             << y1 << "\t\t"
+             << y2 << endl;
     }
 
     return y1;
@@ -95,19 +105,27 @@ int main()
     fin >> n;
     fin >> eps;
 
-    // Начальные границы для y'(a)
     double t1 = -100;
     double t2 = 100;
 
-    double F_t1 = rungeKutta(a, b, alpha, t1, n) - beta;
-    double F_t2 = rungeKutta(a, b, alpha, t2, n) - beta;
+    double F_t1 = rungeKutta(a, b, alpha,
+                             t1, n, fout) - beta;
 
-    // Метод дихотомии
+    fout << endl;
+
+    double F_t2 = rungeKutta(a, b, alpha,
+                             t2, n, fout) - beta;
+
     while (fabs(t2 - t1) > eps)
     {
         double tm = (t1 + t2) / 2;
 
-        double F_tm = rungeKutta(a, b, alpha, tm, n) - beta;
+        ofstream temp("temp.txt");
+
+        double F_tm = rungeKutta(a, b, alpha,
+                                 tm, n, temp) - beta;
+
+        temp.close();
 
         if (F_t1 * F_tm < 0)
         {
@@ -123,12 +141,14 @@ int main()
 
     double t = (t1 + t2) / 2;
 
-    fout << "Приближенное значение y'(a): "
-         << t << endl;
+    fout << endl;
+    fout << "Найденное значение y'(a): "
+         << t << endl << endl;
 
-    fout << "y(b) = "
-         << rungeKutta(a, b, alpha, t, n)
-         << endl;
+    fout << "Финальное решение:" << endl;
+
+    rungeKutta(a, b, alpha,
+               t, n, fout);
 
     fin.close();
     fout.close();
