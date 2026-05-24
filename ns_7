@@ -1,0 +1,530 @@
+# =========================================1
+# Fine-tuning DistilBERT
+# Классификация IMDB
+# =========================================
+
+# pip install transformers datasets evaluate scikit-learn
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+from datasets import load_dataset
+from transformers import (
+    DistilBertTokenizer,
+    DistilBertForSequenceClassification,
+    Trainer,
+    TrainingArguments
+)
+
+from sklearn.metrics import (
+    accuracy_score,
+    precision_recall_curve,
+    roc_curve,
+    auc
+)
+
+import evaluate
+import torch
+
+# =========================================
+# Загрузка датасета
+# =========================================
+
+dataset = load_dataset("imdb")
+
+# =========================================
+# Токенизатор
+# =========================================
+
+tokenizer = DistilBertTokenizer.from_pretrained(
+    "distilbert-base-uncased"
+)
+
+def tokenize(example):
+
+    return tokenizer(
+        example["text"],
+        truncation=True,
+        padding="max_length",
+        max_length=256
+    )
+
+dataset = dataset.map(tokenize, batched=True)
+
+dataset.set_format(
+    type="torch",
+    columns=["input_ids", "attention_mask", "label"]
+)
+
+train_dataset = dataset["train"].shuffle(seed=42).select(range(5000))
+
+test_dataset = dataset["test"].shuffle(seed=42).select(range(1000))
+
+# =========================================
+# Модель
+# =========================================
+
+model = DistilBertForSequenceClassification.from_pretrained(
+    "distilbert-base-uncased",
+    num_labels=2
+)
+
+# =========================================
+# Accuracy
+# =========================================
+
+accuracy_metric = evaluate.load("accuracy")
+
+def compute_metrics(eval_pred):
+
+    logits, labels = eval_pred
+
+    predictions = np.argmax(logits, axis=-1)
+
+    return accuracy_metric.compute(
+        predictions=predictions,
+        references=labels
+    )
+
+# =========================================
+# Параметры обучения
+# =========================================
+
+training_args = TrainingArguments(
+    output_dir="./results",
+    evaluation_strategy="epoch",
+    save_strategy="epoch",
+    learning_rate=2e-5,
+    per_device_train_batch_size=8,
+    per_device_eval_batch_size=8,
+    num_train_epochs=2,
+    weight_decay=0.01
+)
+
+# =========================================
+# Trainer
+# =========================================
+
+trainer = Trainer(
+    model=model,
+    args=training_args,
+    train_dataset=train_dataset,
+    eval_dataset=test_dataset,
+    compute_metrics=compute_metrics
+)
+
+# =========================================
+# Обучение
+# =========================================
+
+trainer.train()
+
+# =========================================
+# Оценка
+# =========================================
+
+predictions = trainer.predict(test_dataset)
+
+logits = predictions.predictions
+
+labels = predictions.label_ids
+
+probs = torch.softmax(
+    torch.tensor(logits),
+    dim=1
+).numpy()
+
+preds = np.argmax(logits, axis=1)
+
+acc = accuracy_score(labels, preds)
+
+print(f"Accuracy: {acc:.4f}")
+
+# =========================================
+# Precision-Recall
+# =========================================
+
+precision, recall, _ = precision_recall_curve(
+    labels,
+    probs[:, 1]
+)
+
+plt.figure(figsize=(6, 5))
+
+plt.plot(recall, precision)
+
+plt.title("Precision-Recall Curve")
+
+plt.xlabel("Recall")
+
+plt.ylabel("Precision")
+
+plt.grid()
+
+plt.show()
+
+# =========================================
+# ROC-AUC
+# =========================================
+
+fpr, tpr, _ = roc_curve(labels, probs[:, 1])
+
+roc_auc = auc(fpr, tpr)
+
+plt.figure(figsize=(6, 5))
+
+plt.plot(fpr, tpr, label=f"AUC = {roc_auc:.4f}")
+
+plt.plot([0, 1], [0, 1], linestyle="--")
+
+plt.xlabel("False Positive Rate")
+
+plt.ylabel("True Positive Rate")
+
+plt.title("ROC Curve")
+
+plt.legend()
+
+plt.grid()
+
+plt.show()
+
+//////////////////////////////////////////////////////////////
+
+# =========================================2
+# Sentiment Analysis
+# BERT + свой датасет
+# =========================================
+
+# pip install transformers datasets
+
+import pandas as pd
+import torch
+
+from datasets import Dataset
+from transformers import (
+    BertTokenizer,
+    BertForSequenceClassification,
+    Trainer,
+    TrainingArguments
+)
+
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score
+
+# =========================================
+# Датасет
+# =========================================
+
+texts = [
+    "Фильм очень понравился",
+    "Это ужасный сервис",
+    "Отличная работа",
+    "Мне не понравилось",
+    "Замечательный продукт",
+    "Очень плохо"
+]
+
+labels = [1, 0, 1, 0, 1, 0]
+
+df = pd.DataFrame({
+    "text": texts,
+    "label": labels
+})
+
+train_df, test_df = train_test_split(
+    df,
+    test_size=0.3,
+    random_state=42
+)
+
+train_dataset = Dataset.from_pandas(train_df)
+
+test_dataset = Dataset.from_pandas(test_df)
+
+# =========================================
+# Токенизация
+# =========================================
+
+tokenizer = BertTokenizer.from_pretrained(
+    "bert-base-multilingual-cased"
+)
+
+def tokenize(batch):
+
+    return tokenizer(
+        batch["text"],
+        padding="max_length",
+        truncation=True,
+        max_length=128
+    )
+
+train_dataset = train_dataset.map(tokenize, batched=True)
+
+test_dataset = test_dataset.map(tokenize, batched=True)
+
+train_dataset.set_format(
+    type="torch",
+    columns=["input_ids", "attention_mask", "label"]
+)
+
+test_dataset.set_format(
+    type="torch",
+    columns=["input_ids", "attention_mask", "label"]
+)
+
+# =========================================
+# Модель
+# =========================================
+
+model = BertForSequenceClassification.from_pretrained(
+    "bert-base-multilingual-cased",
+    num_labels=2
+)
+
+# =========================================
+# Метрики
+# =========================================
+
+def compute_metrics(pred):
+
+    logits, labels = pred
+
+    predictions = logits.argmax(axis=-1)
+
+    return {
+        "accuracy": accuracy_score(labels, predictions)
+    }
+
+# =========================================
+# Обучение
+# =========================================
+
+training_args = TrainingArguments(
+    output_dir="./bert_results",
+    num_train_epochs=3,
+    per_device_train_batch_size=4,
+    learning_rate=2e-5
+)
+
+trainer = Trainer(
+    model=model,
+    args=training_args,
+    train_dataset=train_dataset,
+    eval_dataset=test_dataset,
+    compute_metrics=compute_metrics
+)
+
+trainer.train()
+
+# =========================================
+# Проверка
+# =========================================
+
+text = "Мне очень понравился этот фильм"
+
+inputs = tokenizer(
+    text,
+    return_tensors="pt",
+    truncation=True,
+    padding=True
+)
+
+outputs = model(**inputs)
+
+prediction = torch.argmax(outputs.logits).item()
+
+if prediction == 1:
+    print("Положительный отзыв")
+else:
+    print("Отрицательный отзыв")
+
+///////////////////////////////////////////////////////////////////////
+
+# =========================================3
+# Чат-бот на GPT-2
+# =========================================
+
+# pip install transformers torch
+
+from transformers import pipeline
+
+# =========================================
+# Загрузка модели
+# =========================================
+
+chatbot = pipeline(
+    "text-generation",
+    model="sberbank-ai/rugpt3small_based_on_gpt2"
+)
+
+# =========================================
+# Диалог
+# =========================================
+
+print("Введите 'выход' для завершения")
+
+while True:
+
+    user_input = input("Вы: ")
+
+    if user_input.lower() == "выход":
+        break
+
+    result = chatbot(
+        user_input,
+        max_length=80,
+        do_sample=True,
+        temperature=0.8,
+        top_k=50
+    )
+
+    print("Бот:", result[0]["generated_text"])
+
+///////////////////////////////////////////////////////////////////
+
+# =========================================4
+# T5 Summarization
+# =========================================
+
+# pip install transformers sentencepiece
+
+from transformers import T5Tokenizer, T5ForConditionalGeneration
+
+# =========================================
+# Модель
+# =========================================
+
+model_name = "t5-small"
+
+tokenizer = T5Tokenizer.from_pretrained(model_name)
+
+model = T5ForConditionalGeneration.from_pretrained(model_name)
+
+# =========================================
+# Текст
+# =========================================
+
+text = """
+Artificial intelligence is rapidly changing the world.
+Machine learning models are widely used in medicine,
+finance, education and robotics.
+"""
+
+input_text = "summarize: " + text
+
+inputs = tokenizer.encode(
+    input_text,
+    return_tensors="pt",
+    max_length=512,
+    truncation=True
+)
+
+# =========================================
+# Генерация
+# =========================================
+
+summary_ids = model.generate(
+    inputs,
+    max_length=40,
+    min_length=10,
+    length_penalty=2.0,
+    num_beams=4
+)
+
+summary = tokenizer.decode(
+    summary_ids[0],
+    skip_special_tokens=True
+)
+
+print("Summary:")
+
+print(summary)
+
+
+////////////////////////////////////////////////////////////////////////////
+
+# =========================================5
+# Named Entity Recognition
+# RoBERTa
+# =========================================
+
+# pip install transformers
+
+from transformers import pipeline
+
+# =========================================
+# Модель NER
+# =========================================
+
+ner = pipeline(
+    "ner",
+    model="Jean-Baptiste/roberta-large-ner-english",
+    aggregation_strategy="simple"
+)
+
+# =========================================
+# Текст
+# =========================================
+
+text = """
+Elon Musk founded SpaceX in the USA.
+"""
+
+# =========================================
+# Предсказание
+# =========================================
+
+results = ner(text)
+
+for entity in results:
+
+    print(
+        f"Text: {entity['word']}, "
+        f"Type: {entity['entity_group']}, "
+        f"Score: {entity['score']:.4f}"
+    )
+
+///////////////////////////////////////////////////////////////////////
+
+# =========================================6
+# Генерация текста
+# GPT-2 / RuGPT
+# =========================================
+
+# pip install transformers
+
+from transformers import pipeline
+
+# =========================================
+# Модель
+# =========================================
+
+generator = pipeline(
+    "text-generation",
+    model="sberbank-ai/rugpt3small_based_on_gpt2"
+)
+
+# =========================================
+# Prompt
+# =========================================
+
+prompt = "Напиши короткий фантастический рассказ о будущем"
+
+# =========================================
+# Генерация
+# =========================================
+
+result = generator(
+    prompt,
+    max_length=120,
+    do_sample=True,
+    temperature=0.9,
+    top_k=50
+)
+
+print(result[0]["generated_text"])
+
+
+/////////////////////////////////////////////////////////////////
+
