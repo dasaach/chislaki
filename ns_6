@@ -1,0 +1,305 @@
+# =========================================
+# Transfer Learning для классификации
+# FashionMNIST + ResNet18
+# =========================================
+
+import torch
+import torch.nn as nn
+import torch.optim as optim
+
+import torchvision
+import torchvision.transforms as transforms
+from torchvision import models
+
+from torch.utils.data import DataLoader
+
+# =========================================
+# Устройство
+# =========================================
+
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+print("Device:", device)
+
+# =========================================
+# Преобразования
+# =========================================
+
+transform = transforms.Compose([
+    transforms.Resize((224, 224)),
+    transforms.Grayscale(num_output_channels=3),
+    transforms.ToTensor()
+])
+
+# =========================================
+# Датасет
+# =========================================
+
+trainset = torchvision.datasets.FashionMNIST(
+    root='./data',
+    train=True,
+    download=True,
+    transform=transform
+)
+
+testset = torchvision.datasets.FashionMNIST(
+    root='./data',
+    train=False,
+    download=True,
+    transform=transform
+)
+
+trainloader = DataLoader(trainset, batch_size=32, shuffle=True)
+
+testloader = DataLoader(testset, batch_size=32, shuffle=False)
+
+# =========================================
+# Модель ResNet18
+# =========================================
+
+model = models.resnet18(pretrained=True)
+
+# Замораживаем веса
+for param in model.parameters():
+    param.requires_grad = False
+
+# Меняем последний слой
+model.fc = nn.Linear(model.fc.in_features, 10)
+
+model = model.to(device)
+
+# =========================================
+# Loss и optimizer
+# =========================================
+
+criterion = nn.CrossEntropyLoss()
+
+optimizer = optim.Adam(model.fc.parameters(), lr=0.001)
+
+# =========================================
+# Обучение
+# =========================================
+
+epochs = 3
+
+for epoch in range(epochs):
+
+    model.train()
+
+    running_loss = 0.0
+
+    for images, labels in trainloader:
+
+        images = images.to(device)
+
+        labels = labels.to(device)
+
+        optimizer.zero_grad()
+
+        outputs = model(images)
+
+        loss = criterion(outputs, labels)
+
+        loss.backward()
+
+        optimizer.step()
+
+        running_loss += loss.item()
+
+    print(f"Epoch {epoch+1}, Loss: {running_loss:.3f}")
+
+# =========================================
+# Точность
+# =========================================
+
+model.eval()
+
+correct = 0
+total = 0
+
+with torch.no_grad():
+
+    for images, labels in testloader:
+
+        images = images.to(device)
+
+        labels = labels.to(device)
+
+        outputs = model(images)
+
+        _, predicted = torch.max(outputs, 1)
+
+        total += labels.size(0)
+
+        correct += (predicted == labels).sum().item()
+
+accuracy = 100 * correct / total
+
+print(f"Accuracy: {accuracy:.2f}%")
+
+///////////////////////////////////////////////////////////
+
+# =========================================
+# Object Detection
+# Faster R-CNN
+# =========================================
+
+import torch
+import torchvision
+
+from torchvision.models.detection import fasterrcnn_resnet50_fpn
+from torchvision.transforms import functional as F
+
+from PIL import Image
+import matplotlib.pyplot as plt
+import matplotlib.patches as patches
+
+# =========================================
+# Устройство
+# =========================================
+
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+# =========================================
+# Модель
+# =========================================
+
+model = fasterrcnn_resnet50_fpn(pretrained=True)
+
+model.eval()
+
+model.to(device)
+
+# =========================================
+# Загрузка изображения
+# =========================================
+
+image = Image.open("test.jpg").convert("RGB")
+
+image_tensor = F.to_tensor(image).to(device)
+
+# =========================================
+# Предсказание
+# =========================================
+
+with torch.no_grad():
+
+    prediction = model([image_tensor])
+
+# =========================================
+# Отображение результата
+# =========================================
+
+fig, ax = plt.subplots(1, figsize=(12, 8))
+
+ax.imshow(image)
+
+boxes = prediction[0]['boxes'].cpu().numpy()
+
+scores = prediction[0]['scores'].cpu().numpy()
+
+for box, score in zip(boxes, scores):
+
+    if score > 0.7:
+
+        x1, y1, x2, y2 = box
+
+        rect = patches.Rectangle(
+            (x1, y1),
+            x2 - x1,
+            y2 - y1,
+            linewidth=2,
+            edgecolor='red',
+            facecolor='none'
+        )
+
+        ax.add_patch(rect)
+
+        ax.text(
+            x1,
+            y1,
+            f"{score:.2f}",
+            color='red'
+        )
+
+plt.show()
+
+////////////////////////////////////////////////////////////
+
+# =========================================
+# Semantic Segmentation
+# DeepLabV3
+# =========================================
+
+import torch
+import torchvision
+
+from torchvision import transforms
+from PIL import Image
+
+import matplotlib.pyplot as plt
+import numpy as np
+
+# =========================================
+# Устройство
+# =========================================
+
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+# =========================================
+# Модель
+# =========================================
+
+model = torchvision.models.segmentation.deeplabv3_resnet101(
+    pretrained=True
+)
+
+model.eval()
+
+model.to(device)
+
+# =========================================
+# Изображение
+# =========================================
+
+image = Image.open("segmentation.jpg").convert("RGB")
+
+transform = transforms.Compose([
+    transforms.ToTensor()
+])
+
+input_tensor = transform(image).unsqueeze(0).to(device)
+
+# =========================================
+# Предсказание
+# =========================================
+
+with torch.no_grad():
+
+    output = model(input_tensor)['out'][0]
+
+output_predictions = output.argmax(0).cpu().numpy()
+
+# =========================================
+# Отображение
+# =========================================
+
+plt.figure(figsize=(12, 6))
+
+plt.subplot(1, 2, 1)
+
+plt.imshow(image)
+
+plt.title("Original Image")
+
+plt.axis("off")
+
+plt.subplot(1, 2, 2)
+
+plt.imshow(output_predictions)
+
+plt.title("Segmentation Mask")
+
+plt.axis("off")
+
+plt.show()
