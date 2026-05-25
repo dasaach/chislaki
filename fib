@@ -1,86 +1,101 @@
 #include <iostream>
+
 using namespace std;
 
-// функция из задания
+// функция
 double f(double x)
 {
     return x * x + 2;
 }
 
-// функция вычисления чисел Фибоначчи
-int fibonacci(int n)
-{
-    if (n == 0 || n == 1)
-        return 1;
-
-    int a = 1;
-    int b = 1;
-    int c;
-
-    for (int i = 2; i <= n; i++)
-    {
-        c = a + b; // следующее число Фибоначчи
-        a = b;
-        b = c;
-    }
-
-    return b;
-}
-
 int main()
 {
-    double a = -3;   // левая граница
-    double b = 7;    // правая граница
-    double eps = 0.5; // точность
+    double a = -3;
+    double b = 7;
+    double eps = 0.5;
+
+    // массив чисел Фибоначчи
+    int F[50];
+
+    F[0] = 1;
+    F[1] = 1;
 
     int n = 1;
 
-    // ищем нужное число итераций
-    while (fibonacci(n) < (b - a) / eps)
+    // заранее вычисляем числа Фибоначчи
+    while (true)
     {
+        F[n + 1] = F[n] + F[n - 1];
+
+        if (F[n + 1] >= (b - a) / eps)
+        {
+            n = n + 1;
+            break;
+        }
+
         n++;
     }
 
-    // вычисляем начальные точки
-    double x1 = a + (double)fibonacci(n - 2) / fibonacci(n) * (b - a);
-    double x2 = a + (double)fibonacci(n - 1) / fibonacci(n) * (b - a);
+    // начальные точки
+    double x1 =
+        a + (double)F[n - 2] / F[n] * (b - a);
 
-    // основной цикл метода
+    double x2 =
+        a + (double)F[n - 1] / F[n] * (b - a);
+
+    // основной цикл
     for (int k = 1; k <= n - 2; k++)
     {
-        // вывод текущего интервала
         cout << "Шаг " << k << endl;
-        cout << "a = " << a << "  b = " << b << endl;
-        cout << "x1 = " << x1 << "  x2 = " << x2 << endl;
 
-        // сравнение значений функции
+        cout << "a = " << a
+             << "   b = " << b << endl;
+
+        cout << "x1 = " << x1
+             << "   x2 = " << x2 << endl;
+
+        cout << "f(x1) = " << f(x1)
+             << "   f(x2) = " << f(x2)
+             << endl;
+
+        // погрешность
+        double error = (b - a) / 2.0;
+
+        cout << "Погрешность = "
+             << error << endl;
+
         if (f(x1) < f(x2))
         {
-            b = x2; // сдвигаем правую границу
+            b = x2;
+
             x2 = x1;
 
-            // вычисляем новую точку
-            x1 = a + (double)fibonacci(n - k - 2) /
-                          fibonacci(n - k) * (b - a);
+            x1 =
+                a + (double)F[n - k - 2] /
+                F[n - k] * (b - a);
         }
         else
         {
-            a = x1; // сдвигаем левую границу
+            a = x1;
+
             x1 = x2;
 
-            // вычисляем новую точку
-            x2 = a + (double)fibonacci(n - k - 1) /
-                          fibonacci(n - k) * (b - a);
+            x2 =
+                a + (double)F[n - k - 1] /
+                F[n - k] * (b - a);
         }
 
-        cout << "------------------" << endl;
+        cout << "-------------------"
+             << endl;
     }
 
-    // приближённая точка минимума
-    double xmin = (a + b) / 2;
+    double xmin = (a + b) / 2.0;
 
-    cout << "Минимум x* = " << xmin << endl;
-    cout << "f(x*) = " << f(xmin) << endl;
+    cout << "Минимум x* = "
+         << xmin << endl;
+
+    cout << "f(x*) = "
+         << f(xmin) << endl;
 
     return 0;
 }
