@@ -1,95 +1,84 @@
 #include <iostream>
-#include <iomanip>
 #include <cmath>
 
 using namespace std;
 
-double f(double x1, double x2)
+const double EPS = 0.5;
+const double ALPHA = 0.1;
+
+struct Point
 {
-    return x1*x1 + 4*x2*x2 + x1*x2 + x1;
+    double x1, x2;
+};
+
+double f(Point x)
+{
+    return x.x1*x.x1 +
+           4*x.x2*x.x2 +
+           x.x1*x.x2 +
+           x.x1;
 }
 
-double df_dx1(double x1, double x2)
+Point grad(Point x)
 {
-    return 2*x1 + x2 + 1;
+    Point g;
+
+    g.x1 = 2*x.x1 + x.x2 + 1;
+    g.x2 = x.x1 + 8*x.x2;
+
+    return g;
 }
 
-double df_dx2(double x1, double x2)
+double norm(Point g)
 {
-    return x1 + 8*x2;
+    return sqrt(g.x1*g.x1 + g.x2*g.x2);
 }
 
 int main()
 {
-    double x1 = 3.0;
-    double x2 = 1.0;
+    Point x = {3,1};
 
-    double eps = 0.0001;
+    double prevNorm = 0;
 
-    int iter = 0;
-
-    cout << fixed << setprecision(6);
+    int k = 0;
 
     while(true)
     {
-        double g1 = df_dx1(x1, x2);
-        double g2 = df_dx2(x1, x2);
+        Point g = grad(x);
 
-        double norm = sqrt(g1*g1 + g2*g2);
+        double n = norm(g);
 
-        cout << "\n====================================\n";
-        cout << "Итерация: " << iter << endl;
-
-        cout << "Точка:\n";
-        cout << "x1 = " << x1 << endl;
-        cout << "x2 = " << x2 << endl;
-
-        cout << "\nГрадиент:\n";
-        cout << "g1 = " << g1 << endl;
-        cout << "g2 = " << g2 << endl;
-
-        cout << "\nНорма градиента = " << norm << endl;
-
-        if(norm < eps)
-        {
-            cout << "\nМинимум найден.\n";
+        if(n < EPS)
             break;
-        }
 
-        // шаг alpha
-        double numerator = g1*g1 + g2*g2;
+        // движение ПРОТИВ градиента
+        x.x1 = x.x1 - ALPHA*g.x1;
+        x.x2 = x.x2 - ALPHA*g.x2;
 
-        double h11 = 2;
-        double h12 = 1;
-        double h21 = 1;
-        double h22 = 8;
+        double error =
+            fabs(n - prevNorm)/2.0;
 
-        double denominator =
-            h11*g1*g1 +
-            (h12+h21)*g1*g2 +
-            h22*g2*g2;
+        cout << "Iter = " << k+1 << endl;
 
-        double alpha = numerator / denominator;
+        cout << "x1 = " << x.x1 << endl;
+        cout << "x2 = " << x.x2 << endl;
 
-        cout << "\nШаг alpha:\n";
-        cout << "alpha = " << alpha << endl;
+        cout << "f(x) = "
+             << f(x) << endl;
 
-        double new_x1 = x1 - alpha*g1;
-        double new_x2 = x2 - alpha*g2;
+        cout << "||grad|| = "
+             << n << endl;
 
-        cout << "\nНовая точка:\n";
-        cout << "x1_new = " << new_x1 << endl;
-        cout << "x2_new = " << new_x2 << endl;
+        cout << "error = "
+             << error << endl;
 
-        x1 = new_x1;
-        x2 = new_x2;
+        cout << "------------------"
+             << endl;
 
-        iter++;
+        prevNorm = n;
+
+        k++;
     }
 
-    cout << "\n==============================\n";
-    cout << "Ответ:\n";
-    cout << "x1 = " << x1 << endl;
-    cout << "x2 = " << x2 << endl;
-    cout << "f = " << f(x1,x2) << endl;
+    return 0;
 }
