@@ -1,106 +1,107 @@
 #include <iostream>
-#include <iomanip>
 #include <cmath>
 
 using namespace std;
 
-double f(double x1, double x2)
+const double EPS = 0.5;
+const double ALPHA = 0.1;
+
+struct Point
 {
-    return x1*x1 + 4*x2*x2 + x1*x2 + x1;
+    double x1, x2;
+};
+
+double f(Point x)
+{
+    return x.x1*x.x1 +
+           4*x.x2*x.x2 +
+           x.x1*x.x2 +
+           x.x1;
 }
 
-double df_dx1(double x1, double x2)
+Point grad(Point x)
 {
-    return 2*x1 + x2 + 1;
+    Point g;
+
+    g.x1 = 2*x.x1 + x.x2 + 1;
+    g.x2 = x.x1 + 8*x.x2;
+
+    return g;
 }
 
-double df_dx2(double x1, double x2)
+double norm(Point g)
 {
-    return x1 + 8*x2;
+    return sqrt(g.x1*g.x1 + g.x2*g.x2);
+}
+
+double dot(Point a, Point b)
+{
+    return a.x1*b.x1 + a.x2*b.x2;
 }
 
 int main()
 {
-    double x1 = 3;
-    double x2 = 1;
+    Point x = {3,1};
 
-    double eps = 0.0001;
+    Point g = grad(x);
 
-    cout << fixed << setprecision(6);
+    // начальное направление
+    Point d;
 
-    double g1 = df_dx1(x1,x2);
-    double g2 = df_dx2(x1,x2);
+    d.x1 = -g.x1;
+    d.x2 = -g.x2;
 
-    double d1 = -g1;
-    double d2 = -g2;
+    double prevNorm = 0;
 
-    int iter = 0;
+    int k = 0;
 
     while(true)
     {
-        double norm = sqrt(g1*g1 + g2*g2);
+        double n = norm(g);
 
-        cout << "\n=================================\n";
-        cout << "Итерация: " << iter << endl;
-
-        cout << "x1 = " << x1 << endl;
-        cout << "x2 = " << x2 << endl;
-
-        cout << "\nГрадиент:\n";
-        cout << "g1 = " << g1 << endl;
-        cout << "g2 = " << g2 << endl;
-
-        if(norm < eps)
-        {
-            cout << "\nМинимум найден.\n";
+        if(n < EPS)
             break;
-        }
 
-        // Hessian
-        double H11 = 2;
-        double H12 = 1;
-        double H21 = 1;
-        double H22 = 8;
+        // движение по сопряжённому направлению
+        x.x1 = x.x1 + ALPHA*d.x1;
+        x.x2 = x.x2 + ALPHA*d.x2;
 
-        double numerator =
-            -(g1*d1 + g2*d2);
-
-        double denominator =
-            d1*(H11*d1 + H12*d2) +
-            d2*(H21*d1 + H22*d2);
-
-        double alpha = numerator / denominator;
-
-        cout << "\nalpha = " << alpha << endl;
-
-        x1 = x1 + alpha*d1;
-        x2 = x2 + alpha*d2;
-
-        cout << "\nНовая точка:\n";
-        cout << "x1 = " << x1 << endl;
-        cout << "x2 = " << x2 << endl;
-
-        double new_g1 = df_dx1(x1,x2);
-        double new_g2 = df_dx2(x1,x2);
+        Point gNew = grad(x);
 
         double beta =
-            (new_g1*new_g1 + new_g2*new_g2) /
-            (g1*g1 + g2*g2);
+            dot(gNew,gNew) /
+            dot(g,g);
 
-        cout << "\nbeta = " << beta << endl;
+        // новое сопряжённое направление
+        d.x1 = -gNew.x1 + beta*d.x1;
+        d.x2 = -gNew.x2 + beta*d.x2;
 
-        d1 = -new_g1 + beta*d1;
-        d2 = -new_g2 + beta*d2;
+        double error =
+            fabs(n - prevNorm)/2.0;
 
-        g1 = new_g1;
-        g2 = new_g2;
+        cout << "Iter = " << k+1 << endl;
 
-        iter++;
+        cout << "x1 = " << x.x1 << endl;
+        cout << "x2 = " << x.x2 << endl;
+
+        cout << "f(x) = "
+             << f(x) << endl;
+
+        cout << "||grad|| = "
+             << n << endl;
+
+        cout << "error = "
+             << error << endl;
+
+        cout << "------------------"
+             << endl;
+
+        prevNorm = n;
+
+        g = gNew;
+
+        k++;
     }
 
-    cout << "\n=============================\n";
-    cout << "Ответ:\n";
-    cout << "x1 = " << x1 << endl;
-    cout << "x2 = " << x2 << endl;
-    cout << "f = " << f(x1,x2) << endl;
+    return 0;
 }
