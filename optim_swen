@@ -67,3 +67,100 @@ int main()
 
     return 0;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+#include <iostream>
+
+using namespace std;
+
+// функция
+double f(double x)
+{
+    return x * x + 2;
+}
+
+int main()
+{
+    double x0 = 2;
+    double t = 1;
+
+    double x1 = x0;
+    double x2;
+
+    // определяем направление
+    if (f(x0 - t) < f(x0))
+    {
+        t = -t;
+    }
+    else if (f(x0 + t) > f(x0))
+    {
+        cout << "Интервал неопределенности: ["
+             << x0 - t << " ; "
+             << x0 + t << "]"
+             << endl;
+
+        return 0;
+    }
+
+    // первая точка
+    x2 = x1 + t;
+
+    int k = 1;
+
+    cout << "Шаг " << k << endl;
+    cout << "x1 = " << x1
+         << "   x2 = " << x2
+         << endl;
+
+    // основной цикл Свенна
+    while (f(x2) < f(x1))
+    {
+        t = 2 * t;
+
+        double x3 = x2 + t;
+
+        cout << "Шаг " << k + 1 << endl;
+
+        cout << "x1 = " << x1
+             << "   x2 = " << x2
+             << "   x3 = " << x3
+             << endl;
+
+        if (f(x3) >= f(x2))
+        {
+            if (t > 0)
+            {
+                cout << "Интервал неопределенности: ["
+                     << x1 << " ; "
+                     << x3 << "]"
+                     << endl;
+            }
+            else
+            {
+                cout << "Интервал неопределенности: ["
+                     << x3 << " ; "
+                     << x1 << "]"
+                     << endl;
+            }
+
+            break;
+        }
+
+        x1 = x2;
+        x2 = x3;
+
+        k++;
+    }
+
+    return 0;
+}
