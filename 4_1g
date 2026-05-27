@@ -1,19 +1,37 @@
 #include <iostream>
 #include <fstream>
 #include <cmath>
+#include <iomanip>
 
 using namespace std;
 
-// p(x)
+//double p(double x)
+//{
+//    return -1.0;
+//}
+//
+//double func(double x)
+//{
+//    return 0.0;
+//}
+//
+//double exact(double x)
+//{
+//    return sin(x);
+//}
 double p(double x)
 {
-    return x;
+    return -1.0;
 }
 
-// f(x)
 double func(double x)
 {
-    return x * x;
+    return 0.0;
+}
+
+double exact(double x)
+{
+    return sin(x);
 }
 
 // y1' = y2
@@ -29,12 +47,13 @@ double F2(double x, double y1, double y2)
 }
 
 // Метод Рунге-Кутты
-double rungeKutta(double a, double b,
-                  double alpha,
-                  double t,
-                  int n,
-                  ofstream &fout,
-                  bool print)
+double rungeKutta(double a,
+    double b,
+    double alpha,
+    double t,
+    int n,
+    ofstream& fout,
+    bool print)
 {
     double h = (b - a) / n;
 
@@ -42,11 +61,19 @@ double rungeKutta(double a, double b,
     double y1 = alpha;
     double y2 = t;
 
-    // Вывод заголовка
     if (print)
     {
-        fout << "x\t\tu(x)" << endl;
-        fout << x << "\t\t" << y1 << endl;
+        fout << fixed << setprecision(9);
+
+        fout << "x\t\t"
+            << "u(x)\t\t"
+            << "exact\t\t"
+            << "error" << endl;
+
+        fout << x << "\t\t"
+            << y1 << "\t\t"
+            << exact(x) << "\t\t"
+            << fabs(y1 - exact(x)) << endl;
     }
 
     for (int i = 0; i < n; i++)
@@ -54,42 +81,55 @@ double rungeKutta(double a, double b,
         double k1y1 = h * F1(x, y1, y2);
         double k1y2 = h * F2(x, y1, y2);
 
-        double k2y1 = h * F1(x + h / 2,
-                             y1 + k1y1 / 2,
-                             y2 + k1y2 / 2);
+        double k2y1 = h * F1(
+            x + h / 2,
+            y1 + k1y1 / 2,
+            y2 + k1y2 / 2);
 
-        double k2y2 = h * F2(x + h / 2,
-                             y1 + k1y1 / 2,
-                             y2 + k1y2 / 2);
+        double k2y2 = h * F2(
+            x + h / 2,
+            y1 + k1y1 / 2,
+            y2 + k1y2 / 2);
 
-        double k3y1 = h * F1(x + h / 2,
-                             y1 + k2y1 / 2,
-                             y2 + k2y2 / 2);
+        double k3y1 = h * F1(
+            x + h / 2,
+            y1 + k2y1 / 2,
+            y2 + k2y2 / 2);
 
-        double k3y2 = h * F2(x + h / 2,
-                             y1 + k2y1 / 2,
-                             y2 + k2y2 / 2);
+        double k3y2 = h * F2(
+            x + h / 2,
+            y1 + k2y1 / 2,
+            y2 + k2y2 / 2);
 
-        double k4y1 = h * F1(x + h,
-                             y1 + k3y1,
-                             y2 + k3y2);
+        double k4y1 = h * F1(
+            x + h,
+            y1 + k3y1,
+            y2 + k3y2);
 
-        double k4y2 = h * F2(x + h,
-                             y1 + k3y1,
-                             y2 + k3y2);
+        double k4y2 = h * F2(
+            x + h,
+            y1 + k3y1,
+            y2 + k3y2);
 
-        y1 += (k1y1 + 2 * k2y1 +
-               2 * k3y1 + k4y1) / 6;
+        y1 += (k1y1 +
+            2 * k2y1 +
+            2 * k3y1 +
+            k4y1) / 6;
 
-        y2 += (k1y2 + 2 * k2y2 +
-               2 * k3y2 + k4y2) / 6;
+        y2 += (k1y2 +
+            2 * k2y2 +
+            2 * k3y2 +
+            k4y2) / 6;
 
         x += h;
 
-        // Вывод только x и u(x)
         if (print)
         {
-            fout << x << "\t\t" << y1 << endl;
+            fout << x << "\t\t"
+                << y1 << "\t\t"
+                << exact(x) << "\t\t"
+                << fabs(y1 - exact(x))
+                << endl;
         }
     }
 
@@ -114,19 +154,47 @@ int main()
     double t1 = -100;
     double t2 = 100;
 
-    double F_t1 = rungeKutta(a, b, alpha,
-                             t1, n, fout, false) - beta;
+    double F_t1 =
+        rungeKutta(a, b,
+            alpha,
+            t1,
+            n,
+            fout,
+            false) - beta;
 
-    double F_t2 = rungeKutta(a, b, alpha,
-                             t2, n, fout, false) - beta;
+    double F_t2 =
+        rungeKutta(a, b,
+            alpha,
+            t2,
+            n,
+            fout,
+            false) - beta;
+
+    // Проверка существования корня
+    if (F_t1 * F_t2 > 0)
+    {
+        fout << "Ошибка: корень не найден "
+            << "на интервале [t1, t2]"
+            << endl;
+
+        fin.close();
+        fout.close();
+
+        return 1;
+    }
 
     // Метод дихотомии
     while (fabs(t2 - t1) > eps)
     {
         double tm = (t1 + t2) / 2;
 
-        double F_tm = rungeKutta(a, b, alpha,
-                                 tm, n, fout, false) - beta;
+        double F_tm =
+            rungeKutta(a, b,
+                alpha,
+                tm,
+                n,
+                fout,
+                false) - beta;
 
         if (F_t1 * F_tm < 0)
         {
@@ -142,14 +210,32 @@ int main()
 
     double t = (t1 + t2) / 2;
 
+    fout << "Найденное значение y'(a): "
+        << t << endl << endl;
+
     fout << "Таблица решения:" << endl << endl;
 
-    // Финальный вывод
-    rungeKutta(a, b, alpha,
-               t, n, fout, true);
+    rungeKutta(a, b,
+        alpha,
+        t,
+        n,
+        fout,
+        true);
 
     fin.close();
     fout.close();
 
     return 0;
 }
+
+
+//0 1.57079632679
+//0 1
+//100
+//0.000001
+
+
+//0 1
+//0 1
+//10
+//0.000001
