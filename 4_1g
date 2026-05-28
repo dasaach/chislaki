@@ -1,3 +1,181 @@
+//#include <iostream>
+//#include <fstream>
+//#include <cmath>
+//#include <iomanip>
+//
+//using namespace std;
+//
+//// p(x)
+//double p(double x)
+//{
+//    return x;
+//}
+//
+//// f(x)
+//double func(double x)
+//{
+//    return 2 - x * x * x - x;
+//}
+//
+//// Точное решение
+//double exact(double x)
+//{
+//    return x * x + 1;
+//}
+//
+//// y1' = y2
+//double F1(double x, double y1, double y2)
+//{
+//    return y2;
+//}
+//
+//// y2' = p(x)*y1 + f(x)
+//double F2(double x, double y1, double y2)
+//{
+//    return p(x) * y1 + func(x);
+//}
+//
+//// Метод Эйлера
+//double euler(double a,
+//    double b,
+//    double s,
+//    int n,
+//    ofstream& fout,
+//    bool print)
+//{
+//    double h = (b - a) / n;
+//
+//    double x = a;
+//
+//    // s = y(0)
+//    double y1 = s;
+//
+//    // y'(0)=y(0)-1
+//    double y2 = s - 1;
+//
+//    if (print)
+//    {
+//        fout << fixed << setprecision(10);
+//
+//        fout << "x\t\t"
+//            << "u(x)\t\t"
+//            << "exact\t\t"
+//            << "error"
+//            << endl;
+//
+//        fout << x << "\t\t"
+//            << y1 << "\t\t"
+//            << exact(x) << "\t\t"
+//            << fabs(y1 - exact(x))
+//            << endl;
+//    }
+//
+//    for (int i = 0; i < n; i++)
+//    {
+//        double old_y1 = y1;
+//
+//        y1 = y1 + h * y2;
+//
+//        y2 = y2 + h * F2(x, old_y1, y2);
+//
+//        x += h;
+//
+//        if (print)
+//        {
+//            fout << x << "\t\t"
+//                << y1 << "\t\t"
+//                << exact(x) << "\t\t"
+//                << fabs(y1 - exact(x))
+//                << endl;
+//        }
+//    }
+//
+//    // Нужно выполнить y'(1)=2
+//    return y2;
+//}
+//
+//int main()
+//{
+//    ifstream fin("input.txt");
+//    ofstream fout("output.txt");
+//
+//    double a, b;
+//    int n;
+//    double eps;
+//
+//    fin >> a >> b;
+//    fin >> n;
+//    fin >> eps;
+//
+//    // Подбираем y(0)
+//    double s1 = -10;
+//    double s2 = 10;
+//
+//    double F1s =
+//        euler(a, b,
+//            s1,
+//            n,
+//            fout,
+//            false) - 2.0;
+//
+//    double F2s =
+//        euler(a, b,
+//            s2,
+//            n,
+//            fout,
+//            false) - 2.0;
+//
+//    if (F1s * F2s > 0)
+//    {
+//        fout << "Корень не найден";
+//        return 1;
+//    }
+//
+//    while (fabs(s2 - s1) > eps)
+//    {
+//        double sm = (s1 + s2) / 2;
+//
+//        double Fm =
+//            euler(a, b,
+//                sm,
+//                n,
+//                fout,
+//                false) - 2.0;
+//
+//        if (F1s * Fm < 0)
+//        {
+//            s2 = sm;
+//            F2s = Fm;
+//        }
+//        else
+//        {
+//            s1 = sm;
+//            F1s = Fm;
+//        }
+//    }
+//
+//    double s = (s1 + s2) / 2;
+//
+//    fout << "Найденное y(0): "
+//        << s << endl << endl;
+//
+//    euler(a, b,
+//        s,
+//        n,
+//        fout,
+//        true);
+//
+//    fin.close();
+//    fout.close();
+//
+//    return 0;
+//}
+
+//0 1
+//100
+//0.000001
+
+
 #include <iostream>
 #include <fstream>
 #include <cmath>
@@ -5,33 +183,22 @@
 
 using namespace std;
 
-//double p(double x)
-//{
-//    return -1.0;
-//}
-//
-//double func(double x)
-//{
-//    return 0.0;
-//}
-//
-//double exact(double x)
-//{
-//    return sin(x);
-//}
+// p(x)
 double p(double x)
 {
     return -1.0;
 }
 
+// f(x)
 double func(double x)
 {
     return 0.0;
 }
 
+// Точное решение
 double exact(double x)
 {
-    return sin(x);
+    return cos(x);
 }
 
 // y1' = y2
@@ -46,8 +213,8 @@ double F2(double x, double y1, double y2)
     return p(x) * y1 + func(x);
 }
 
-// Метод Рунге-Кутты
-double rungeKutta(double a,
+// Метод Эйлера
+double euler(double a,
     double b,
     double alpha,
     double t,
@@ -58,68 +225,34 @@ double rungeKutta(double a,
     double h = (b - a) / n;
 
     double x = a;
+
     double y1 = alpha;
     double y2 = t;
 
     if (print)
     {
-        fout << fixed << setprecision(9);
+        fout << fixed << setprecision(10);
 
         fout << "x\t\t"
             << "u(x)\t\t"
             << "exact\t\t"
-            << "error" << endl;
+            << "error"
+            << endl;
 
         fout << x << "\t\t"
             << y1 << "\t\t"
             << exact(x) << "\t\t"
-            << fabs(y1 - exact(x)) << endl;
+            << fabs(y1 - exact(x))
+            << endl;
     }
 
     for (int i = 0; i < n; i++)
     {
-        double k1y1 = h * F1(x, y1, y2);
-        double k1y2 = h * F2(x, y1, y2);
+        double old_y1 = y1;
 
-        double k2y1 = h * F1(
-            x + h / 2,
-            y1 + k1y1 / 2,
-            y2 + k1y2 / 2);
+        y1 = y1 + h * y2;
 
-        double k2y2 = h * F2(
-            x + h / 2,
-            y1 + k1y1 / 2,
-            y2 + k1y2 / 2);
-
-        double k3y1 = h * F1(
-            x + h / 2,
-            y1 + k2y1 / 2,
-            y2 + k2y2 / 2);
-
-        double k3y2 = h * F2(
-            x + h / 2,
-            y1 + k2y1 / 2,
-            y2 + k2y2 / 2);
-
-        double k4y1 = h * F1(
-            x + h,
-            y1 + k3y1,
-            y2 + k3y2);
-
-        double k4y2 = h * F2(
-            x + h,
-            y1 + k3y1,
-            y2 + k3y2);
-
-        y1 += (k1y1 +
-            2 * k2y1 +
-            2 * k3y1 +
-            k4y1) / 6;
-
-        y2 += (k1y2 +
-            2 * k2y2 +
-            2 * k3y2 +
-            k4y2) / 6;
+        y2 = y2 + h * F2(x, old_y1, y2);
 
         x += h;
 
@@ -151,11 +284,11 @@ int main()
     fin >> n;
     fin >> eps;
 
-    double t1 = -100;
-    double t2 = 100;
+    double t1 = -10;
+    double t2 = 10;
 
     double F_t1 =
-        rungeKutta(a, b,
+        euler(a, b,
             alpha,
             t1,
             n,
@@ -163,22 +296,18 @@ int main()
             false) - beta;
 
     double F_t2 =
-        rungeKutta(a, b,
+        euler(a, b,
             alpha,
             t2,
             n,
             fout,
             false) - beta;
 
-    // Проверка существования корня
+    // Проверка наличия корня
     if (F_t1 * F_t2 > 0)
     {
-        fout << "Ошибка: корень не найден "
-            << "на интервале [t1, t2]"
+        fout << "Корень не найден"
             << endl;
-
-        fin.close();
-        fout.close();
 
         return 1;
     }
@@ -189,7 +318,7 @@ int main()
         double tm = (t1 + t2) / 2;
 
         double F_tm =
-            rungeKutta(a, b,
+            euler(a, b,
                 alpha,
                 tm,
                 n,
@@ -210,12 +339,10 @@ int main()
 
     double t = (t1 + t2) / 2;
 
-    fout << "Найденное значение y'(a): "
+    fout << "Найденное значение y'(0): "
         << t << endl << endl;
 
-    fout << "Таблица решения:" << endl << endl;
-
-    rungeKutta(a, b,
+    euler(a, b,
         alpha,
         t,
         n,
@@ -229,13 +356,8 @@ int main()
 }
 
 
+
 //0 1.57079632679
-//0 1
-//100
-//0.000001
-
-
-//0 1
-//0 1
-//10
+//1 0
+//20
 //0.000001
