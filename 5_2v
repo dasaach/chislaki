@@ -1,78 +1,291 @@
+//#include <iostream>
+//#include <fstream>
+//#include <vector>
+//#include <cmath>
+//#include <locale>
+//
+//using namespace std;
+//
+//const double PI = 3.141592653589793;
+//
+//int main()
+//{
+//    setlocale(LC_ALL, "Russian");
+//
+//    ifstream fin("input.txt");
+//    ofstream fout("output.txt");
+//
+//    double a, L;
+//    int N, K;
+//
+//    fin >> a;
+//    fin >> L;
+//    fin >> N;
+//    fin >> K;
+//
+//    double h = L / N;
+//
+//    // увеличенный шаг времени
+//    double tau = 0.49 * h * h / (a * a);
+//
+//    double r = a * a * tau / (h * h);
+//
+//    vector<double> u(N + 1);
+//    vector<double> new_u(N + 1);
+//
+//    // начальное условие
+//    for (int i = 0; i <= N; i++)
+//    {
+//        double x = i * h;
+//        u[i] = sin(2 * PI * x);
+//        //u[i] = sin(PI * x);
+//    }
+//
+//    // вычисления
+//    for (int j = 1; j <= K; j++)
+//    {
+//        new_u[0] = 0;
+//        new_u[N] = 0;
+//
+//        for (int i = 1; i < N; i++)
+//        {
+//            new_u[i] =
+//                u[i]
+//                + r * (u[i + 1]
+//                    - 2 * u[i]
+//                    + u[i - 1]);
+//        }
+//
+//        u = new_u;
+//    }
+//
+//    double t = K * tau;
+//
+//    fout << "x u_chisl u_toch pogresh\n";
+//
+//    double maxError = 0;
+//
+//    // ровно 40 значений
+//    for (int k = 0; k < 40; k++)
+//    {
+//        int i = k * N / 39;
+//
+//        double x = i * h;
+//
+//        double exact =
+//            exp(-4 * a * a * PI * PI * t)
+//            * sin(2 * PI * x);
+//        /*double exact =
+//            exp(-a * a * PI * PI * t)
+//            * sin(PI * x);*/
+//
+//        double error =
+//            abs(u[i] - exact);
+//
+//        if (error > maxError)
+//        {
+//            maxError = error;
+//        }
+//
+//        // заменяем точки на запятые
+//        char buffer[200];
+//
+//        sprintf_s(
+//            buffer,
+//            "%.6f %.6f %.6f %.6f",
+//            x,
+//            u[i],
+//            exact,
+//            error
+//        );
+//
+//        for (int j = 0; buffer[j] != '\0'; j++)
+//        {
+//            if (buffer[j] == '.')
+//            {
+//                buffer[j] = ',';
+//            }
+//        }
+//
+//        fout << buffer << "\n";
+//    }
+//
+//    fout << "\n";
+//
+//    char buffer2[100];
+//
+//    sprintf_s(buffer2, "%.6f", maxError);
+//
+//    for (int j = 0; buffer2[j] != '\0'; j++)
+//    {
+//        if (buffer2[j] == '.')
+//        {
+//            buffer2[j] = ',';
+//        }
+//    }
+//
+//    fout << "max_pogresh = "
+//        << buffer2;
+//
+//    fin.close();
+//    fout.close();
+//
+//    return 0;
+//}
+
+
+
+
+
+//1
+//1
+//40
+//2000
+
 #include <iostream>
 #include <fstream>
 #include <vector>
 #include <cmath>
+#include <locale>
 
 using namespace std;
 
+const double PI = 3.141592653589793;
+
 int main()
 {
+    setlocale(LC_ALL, "Russian");
+
     ifstream fin("input.txt");
     ofstream fout("output.txt");
 
     double a, L;
     int N, K;
 
+    // ввод данных
     fin >> a;
     fin >> L;
     fin >> N;
     fin >> K;
 
     double h = L / N;
-    double tau = 0.4 * h * h / (a * a);
+
+    // шаг по времени
+    double tau = 0.45 * h * h / (a * a);
 
     double r = a * a * tau / (h * h);
 
     vector<double> u(N + 1);
     vector<double> new_u(N + 1);
 
-    // Начальное условие
-    // u(x,0)=sin(pi*x)
+    // начальное условие:
+    // u(x,0)=sin(2*pi*x)
 
     for (int i = 0; i <= N; i++)
     {
         double x = i * h;
-        u[i] = sin(M_PI * x);
+
+        u[i] = sin(PI * x);
     }
 
-    // Вывод начального слоя
-    fout << "t = 0\n";
-
-    for (int i = 0; i <= N; i++)
-    {
-        fout << u[i] << " ";
-    }
-
-    fout << "\n\n";
-
-    // Итерации по времени
+    // вычисления
     for (int j = 1; j <= K; j++)
     {
-        // Граничные условия
+        // граничные условия
         new_u[0] = 0;
         new_u[N] = 0;
 
-        // Явная схема
+        // явная схема
         for (int i = 1; i < N; i++)
         {
-            new_u[i] = u[i] +
-                       r * (u[i + 1] - 2 * u[i] + u[i - 1]);
+            new_u[i] =
+                u[i]
+                + r * (
+                    u[i + 1]
+                    - 2 * u[i]
+                    + u[i - 1]
+                    );
         }
 
         u = new_u;
+    }
 
-        fout << "t = " << j * tau << "\n";
+    double t = K * tau;
 
-        for (int i = 0; i <= N; i++)
+    fout << "x u_chisl u_toch pogresh\n";
+
+    double maxError = 0;
+
+    // вывод 40 значений
+    for (int k = 0; k < 20; k++)
+    {
+        int i = k * N / 19;
+
+        double x = i * h;
+
+        // точное решение:
+        // u(x,t)=exp(-16*pi*pi*t)*sin(2*pi*x)
+
+        double exact =
+            exp(-PI * PI * t)
+            * sin(PI * x);
+
+        double error =
+            abs(u[i] - exact);
+
+        if (error > maxError)
         {
-            fout << u[i] << " ";
+            maxError = error;
         }
 
-        fout << "\n\n";
+        // вывод с запятыми
+        char buffer[200];
+
+        sprintf_s(
+            buffer,
+            "%.6f %.6f %.6f %.6f",
+            x,
+            u[i],
+            exact,
+            error
+        );
+
+        for (int j = 0; buffer[j] != '\0'; j++)
+        {
+            if (buffer[j] == '.')
+            {
+                buffer[j] = ',';
+            }
+        }
+
+        fout << buffer << "\n";
     }
+
+    fout << "\n";
+
+    char buffer2[100];
+
+    sprintf_s(buffer2, "%.6f", maxError);
+
+    for (int j = 0; buffer2[j] != '\0'; j++)
+    {
+        if (buffer2[j] == '.')
+        {
+            buffer2[j] = ',';
+        }
+    }
+
+    fout << "max_pogresh = "
+        << buffer2;
 
     fin.close();
     fout.close();
 
     return 0;
 }
+
+//2
+//1
+//40
+//4000
+
