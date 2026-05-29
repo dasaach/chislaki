@@ -1,0 +1,139 @@
+import csv
+
+
+def time_to_seconds(time_str):
+
+    time_str = time_str.lower()
+
+    hours = 0
+    minutes = 0
+    seconds = 0
+
+    parts = time_str.split()
+
+    for i in range(len(parts)):
+
+        if 'ч' in parts[i]:
+            hours = int(parts[i - 1])
+
+        elif 'мин' in parts[i]:
+            minutes = int(parts[i - 1])
+
+        elif 'сек' in parts[i]:
+            seconds = int(parts[i - 1])
+
+    return hours * 3600 + minutes * 60 + seconds
+
+
+def seconds_to_time(total_seconds):
+
+    hours = total_seconds // 3600
+    total_seconds %= 3600
+
+    minutes = total_seconds // 60
+    seconds = total_seconds % 60
+
+    if hours > 0:
+        return f"{hours} ч. {minutes} мин. {seconds} сек."
+
+    return f"{minutes} мин. {seconds} сек."
+
+
+def process_file(filename):
+
+    students = set()
+
+    total_time = 0
+    count = 0
+
+    with open(filename, encoding='utf-8') as file:
+
+        reader = csv.reader(file)
+
+        header = next(reader)
+
+        time_index = header.index("Затраченное время")
+
+        score_index = -1
+
+        for i, col in enumerate(header):
+
+            if "Оценка" in col:
+                score_index = i
+                break
+
+        for row in reader:
+
+            if len(row) <= score_index:
+                continue
+
+            surname = row[0].strip()
+            name = row[1].strip()
+
+            fio = surname + " " + name
+            fio = fio.strip()
+
+            bad_rows = [
+                'Общее среднее',
+                'Среднее по группе'
+            ]
+
+            if fio in bad_rows:
+                continue
+
+            score_str = row[score_index].replace(',', '.').strip()
+
+            if score_str == '' or score_str == '-':
+                continue
+
+            try:
+                score = float(score_str)
+
+            except:
+                continue
+
+            if score > 10:
+                passed = score > 70
+
+            else:
+                passed = score > 7
+
+            if passed:
+
+                students.add(fio)
+
+                time_str = row[time_index].strip()
+
+                try:
+                    total_time += time_to_seconds(time_str)
+                    count += 1
+
+                except:
+                    continue
+
+    students = sorted(students, key=lambda x: x.lower())
+
+    print("=" * 60)
+    print("Файл:", filename)
+
+    print("\nСлушатели с результатом выше 7 баллов:\n")
+
+    for student in students:
+        print(student)
+
+    if count > 0:
+
+        average_time = total_time // count
+
+        print("\nСреднее время прохождения теста:")
+        print(seconds_to_time(average_time))
+
+    else:
+        print("\nНет подходящих слушателей")
+
+    print("=" * 60)
+    print()
+
+
+process_file('7 - 1.csv')
+process_file('7 - 2.csv')
