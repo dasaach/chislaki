@@ -1,0 +1,68 @@
+import xml.etree.ElementTree as ET
+
+
+def analyze_hotels(filename):
+
+    tree = ET.parse(filename)
+    root = tree.getroot()
+
+    hotels = []
+    type_count = {}
+
+    hotel_types = ['hotel', 'hostel', 'guest_house', 'motel']
+
+    elements = (
+            root.findall('node') +
+            root.findall('way') +
+            root.findall('relation')
+    )
+
+    for element in elements:
+
+        is_hotel = False
+        hotel_type = ''
+        hotel_name = 'Без названия'
+
+        for tag in element.findall('tag'):
+
+            k = tag.get('k')
+            v = tag.get('v')
+
+            if k == 'tourism' and v in hotel_types:
+                is_hotel = True
+                hotel_type = v
+
+            if k == 'name':
+                hotel_name = v
+
+        if is_hotel:
+
+            hotels.append((hotel_name, hotel_type))
+
+            type_count[hotel_type] = \
+                type_count.get(hotel_type, 0) + 1
+
+    hotels.sort()
+    hotels.sort(key=lambda x: (x[1] != 'hotel', x[1], x[0]))
+    print("=" * 50)
+    print("Файл:", filename)
+
+    print("\nКоличество гостиниц:",
+          len(hotels))
+
+    print("\nТипы гостиниц:")
+
+    for t, c in type_count.items():
+        print(f"{t}: {c}")
+
+    print("\nСписок гостиниц:")
+
+    for name, t in hotels:
+        print(f"{name} ({t})")
+
+    print("=" * 50)
+    print()
+
+
+analyze_hotels('7.osm')
+analyze_hotels('7 - 2.osm')
