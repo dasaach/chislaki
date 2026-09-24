@@ -1,0 +1,53 @@
+import random
+
+# Русский алфавит без ё — 32 буквы
+alphabet = "абвгдежзийклмнопрстуфхцчшщъыьэюя"
+
+# Перемешиваем алфавит
+shuffled = list(alphabet)
+random.shuffle(shuffled)
+shuffled = ''.join(shuffled)
+
+# Делим перемешанный алфавит на две половины
+half = len(shuffled) // 2
+
+first_half = shuffled[:half]
+second_half = shuffled[half:]
+
+# Создаём таблицу соответствий
+table = {}
+
+for i in range(half):
+    table[first_half[i]] = second_half[i]
+    table[second_half[i]] = first_half[i]
+
+# Выводим соответствия для всего алфавита
+print("Алфавит и соответствующие ему буквы:")
+for letter in alphabet:
+    print(letter, "->", table[letter])
+
+
+# Функция шифрования
+def encrypt(text):
+    result = ""
+
+    for char in text.lower():
+        if char in table:
+            result += table[char]
+        else:
+            result += char
+
+    return result
+
+def decrypt(text):
+    return encrypt(text)
+
+
+word = input("\nВведите слово: ")
+
+encrypted = encrypt(word)
+decrypted = decrypt(encrypted)
+
+print("\nИсходное слово:", word)
+print("Зашифрованное слово:", encrypted)
+print("Расшифрованное слово:", decrypted)
