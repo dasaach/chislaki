@@ -1,0 +1,66 @@
+import random
+
+# Русский алфавит без ё
+alphabet = "абвгдежзийклмнопрстуфхцчшщъыьэюя"
+
+# Создаём копию алфавита и перемешиваем её
+shuffled = list(alphabet)
+random.shuffle(shuffled)
+shuffled = ''.join(shuffled)
+
+print("Исходный алфавит:")
+print(alphabet)
+
+print("\nПеремешанный алфавит:")
+print(shuffled)
+
+# Создаём таблицу соответствий
+encrypt_table = {}
+
+for i in range(len(alphabet)):
+    encrypt_table[alphabet[i]] = shuffled[i]
+
+print("\nТаблица замены:")
+for i in range(len(alphabet)):
+    print(alphabet[i], "->", shuffled[i])
+
+
+# Функция шифрования
+def encrypt(text):
+    result = ""
+
+    for char in text.lower():
+        if char in encrypt_table:
+            result += encrypt_table[char]
+        else:
+            result += char
+
+    return result
+
+
+# Создаём таблицу для расшифровки
+decrypt_table = {}
+
+for key, value in encrypt_table.items():
+    decrypt_table[value] = key
+
+
+# Функция расшифровки
+def decrypt(text):
+    result = ""
+
+    for char in text.lower():
+        if char in decrypt_table:
+            result += decrypt_table[char]
+        else:
+            result += char
+
+    return result
+word = input("\nВведите слово: ")
+
+encrypted = encrypt(word)
+decrypted = decrypt(encrypted)
+
+print("\nИсходное слово:", word)
+print("Зашифрованное слово:", encrypted)
+print("Расшифрованное слово:", decrypted)
