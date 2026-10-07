@@ -1,0 +1,212 @@
+package com.example.calculate
+
+import android.os.Bundle
+import android.widget.Button
+import android.widget.TextView
+import androidx.appcompat.app.AppCompatActivity
+import java.math.BigDecimal
+import java.math.RoundingMode
+
+class MainActivity : AppCompatActivity() {
+
+    private lateinit var tvResult: TextView
+    private lateinit var tvOperation: TextView
+
+    private var firstNumber = 0.0
+    private var currentOperation = ""
+    private var newNumber = true
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_main)
+
+        // Находим элементы интерфейса
+        tvResult = findViewById(R.id.tvResult)
+        tvOperation = findViewById(R.id.tvOperation)
+
+        // Кнопки цифр
+        val numberButtons = listOf(
+            R.id.btn0,
+            R.id.btn1,
+            R.id.btn2,
+            R.id.btn3,
+            R.id.btn4,
+            R.id.btn5,
+            R.id.btn6,
+            R.id.btn7,
+            R.id.btn8,
+            R.id.btn9
+        )
+
+        // Обработчик кнопок цифр
+        for (id in numberButtons) {
+            findViewById<Button>(id).setOnClickListener {
+                val button = it as Button
+                enterNumber(button.text.toString())
+            }
+        }
+
+        // Кнопка точки
+        findViewById<Button>(R.id.btnDot).setOnClickListener {
+            enterDot()
+        }
+
+        // Кнопка +
+        findViewById<Button>(R.id.btnPlus).setOnClickListener {
+            chooseOperation("+")
+        }
+
+        // Кнопка -
+        findViewById<Button>(R.id.btnMinus).setOnClickListener {
+            chooseOperation("-")
+        }
+
+        // Кнопка *
+        findViewById<Button>(R.id.btnMultiply).setOnClickListener {
+            chooseOperation("*")
+        }
+
+        // Кнопка /
+        findViewById<Button>(R.id.btnDivide).setOnClickListener {
+            chooseOperation("/")
+        }
+
+        // Кнопка =
+        findViewById<Button>(R.id.btnEquals).setOnClickListener {
+            calculate()
+        }
+    }
+
+    // Ввод цифры
+    private fun enterNumber(number: String) {
+
+        if (newNumber || tvResult.text.toString() == "0") {
+            tvResult.text = number
+            newNumber = false
+        } else {
+            tvResult.append(number)
+        }
+    }
+
+    // Ввод точки
+    private fun enterDot() {
+
+        if (newNumber) {
+            tvResult.text = "0."
+            newNumber = false
+        } else if (!tvResult.text.contains(".")) {
+            tvResult.append(".")
+        }
+    }
+
+    // Выбор арифметической операции
+    private fun chooseOperation(operation: String) {
+
+        firstNumber = tvResult.text.toString().toDouble()
+        currentOperation = operation
+
+        tvOperation.text =
+            "${formatNumber(firstNumber)} $operation"
+
+        newNumber = true
+    }
+
+    // Выполнение вычисления
+    private fun calculate() {
+
+        if (currentOperation.isEmpty()) {
+            return
+        }
+
+        val secondNumber = tvResult.text.toString().toDouble()
+
+        val first = BigDecimal.valueOf(firstNumber)
+        val second = BigDecimal.valueOf(secondNumber)
+
+        val result: BigDecimal
+
+        try {
+
+            result = when (currentOperation) {
+
+                "+" -> {
+                    first.add(second)
+                }
+
+                "-" -> {
+                    first.subtract(second)
+                }
+
+                "*" -> {
+                    first.multiply(second)
+                }
+
+                "/" -> {
+
+                    if (second.compareTo(BigDecimal.ZERO) == 0) {
+
+                        tvResult.text = "Ошибка"
+                        tvOperation.text = ""
+
+                        currentOperation = ""
+                        newNumber = true
+
+                        return
+                    }
+
+                    first.divide(
+                        second,
+                        10,
+                        RoundingMode.HALF_UP
+                    )
+                }
+
+                else -> {
+                    return
+                }
+            }
+
+        } catch (e: Exception) {
+
+            tvResult.text = "Ошибка"
+            tvOperation.text = ""
+
+            currentOperation = ""
+            newNumber = true
+
+            return
+        }
+
+        // Показываем выражение
+        tvOperation.text =
+            "${formatNumber(firstNumber)} $currentOperation ${formatNumber(secondNumber)} ="
+
+        // Показываем результат без лишних нулей
+        tvResult.text = formatBigDecimal(result)
+
+        // Сохраняем результат для следующей операции
+        firstNumber = result.toDouble()
+
+        // Сбрасываем операцию
+        currentOperation = ""
+
+        // Следующая цифра начнёт новое число
+        newNumber = true
+    }
+
+    // Форматирование обычного Double
+    private fun formatNumber(number: Double): String {
+
+        return BigDecimal.valueOf(number)
+            .stripTrailingZeros()
+            .toPlainString()
+    }
+
+    // Форматирование результата
+    private fun formatBigDecimal(number: BigDecimal): String {
+
+        return number
+            .stripTrailingZeros()
+            .toPlainString()
+    }
+}
