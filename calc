@@ -1,5 +1,7 @@
 package com.example.calculate
 
+package com.example.calculate
+
 import android.os.Bundle
 import android.widget.Button
 import android.widget.TextView
@@ -51,11 +53,6 @@ class MainActivity : AppCompatActivity() {
             enterDot()
         }
 
-        // Кнопка изменения знака
-        findViewById<Button>(R.id.btnPlusMinus).setOnClickListener {
-            changeSign()
-        }
-
         // Кнопка +
         findViewById<Button>(R.id.btnPlus).setOnClickListener {
             chooseOperation("+")
@@ -63,7 +60,15 @@ class MainActivity : AppCompatActivity() {
 
         // Кнопка -
         findViewById<Button>(R.id.btnMinus).setOnClickListener {
-            chooseOperation("-")
+
+            // Если мы начинаем ввод нового числа,
+            // то минус означает отрицательное число
+            if (newNumber) {
+                tvResult.text = "-"
+                newNumber = false
+            } else {
+                chooseOperation("-")
+            }
         }
 
         // Кнопка *
@@ -85,7 +90,11 @@ class MainActivity : AppCompatActivity() {
     // Ввод цифры
     private fun enterNumber(number: String) {
 
-        if (newNumber || tvResult.text.toString() == "0") {
+        if (tvResult.text.toString() == "-") {
+            // Если уже стоит минус, добавляем цифру после него
+            tvResult.append(number)
+            newNumber = false
+        } else if (newNumber || tvResult.text.toString() == "0") {
             tvResult.text = number
             newNumber = false
         } else {
@@ -96,7 +105,10 @@ class MainActivity : AppCompatActivity() {
     // Ввод точки
     private fun enterDot() {
 
-        if (newNumber) {
+        if (tvResult.text.toString() == "-") {
+            tvResult.append("0.")
+            newNumber = false
+        } else if (newNumber) {
             tvResult.text = "0."
             newNumber = false
         } else if (!tvResult.text.contains(".")) {
@@ -104,29 +116,16 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    // Изменение знака числа
-    private fun changeSign() {
-
-        val currentNumber = tvResult.text.toString()
-
-        // Если сейчас введено 0 или пустое значение
-        if (currentNumber == "0" || currentNumber.isEmpty()) {
-            return
-        }
-
-        if (currentNumber.startsWith("-")) {
-            // Убираем минус
-            tvResult.text = currentNumber.substring(1)
-        } else {
-            // Добавляем минус
-            tvResult.text = "-$currentNumber"
-        }
-
-        newNumber = false
-    }
-
     // Выбор арифметической операции
     private fun chooseOperation(operation: String) {
+
+        // Нельзя выбрать операцию, если число ещё не введено
+        if (tvResult.text.toString() == "-" ||
+            tvResult.text.toString() == "." ||
+            tvResult.text.toString().isEmpty()
+        ) {
+            return
+        }
 
         firstNumber = tvResult.text.toString().toDouble()
         currentOperation = operation
