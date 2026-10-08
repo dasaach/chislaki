@@ -51,6 +51,11 @@ class MainActivity : AppCompatActivity() {
             enterDot()
         }
 
+        // Кнопка изменения знака
+        findViewById<Button>(R.id.btnPlusMinus).setOnClickListener {
+            changeSign()
+        }
+
         // Кнопка +
         findViewById<Button>(R.id.btnPlus).setOnClickListener {
             chooseOperation("+")
@@ -97,6 +102,27 @@ class MainActivity : AppCompatActivity() {
         } else if (!tvResult.text.contains(".")) {
             tvResult.append(".")
         }
+    }
+
+    // Изменение знака числа
+    private fun changeSign() {
+
+        val currentNumber = tvResult.text.toString()
+
+        // Если сейчас введено 0 или пустое значение
+        if (currentNumber == "0" || currentNumber.isEmpty()) {
+            return
+        }
+
+        if (currentNumber.startsWith("-")) {
+            // Убираем минус
+            tvResult.text = currentNumber.substring(1)
+        } else {
+            // Добавляем минус
+            tvResult.text = "-$currentNumber"
+        }
+
+        newNumber = false
     }
 
     // Выбор арифметической операции
@@ -181,7 +207,7 @@ class MainActivity : AppCompatActivity() {
         tvOperation.text =
             "${formatNumber(firstNumber)} $currentOperation ${formatNumber(secondNumber)} ="
 
-        // Показываем результат без лишних нулей
+        // Показываем результат
         tvResult.text = formatBigDecimal(result)
 
         // Сохраняем результат для следующей операции
