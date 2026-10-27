@@ -1,0 +1,101 @@
+MASK = 0xFFFFFFFF
+SBOX = [
+    [1, 13, 4, 6, 7, 5, 14, 4],
+    [15, 11, 11, 12, 13, 8, 11, 10],
+    [13, 4, 10, 7, 10, 1, 4, 9],
+    [0, 1, 0, 1, 1, 13, 12, 2],
+    [5, 3, 7, 5, 0, 10, 6, 13],
+    [7, 15, 2, 15, 8, 3, 13, 8],
+    [10, 5, 1, 13, 9, 4, 15, 0],
+    [4, 9, 13, 8, 15, 2, 10, 14],
+    [9, 0, 3, 4, 14, 14, 2, 6],
+    [2, 10, 6, 10, 4, 15, 3, 11],
+    [3, 14, 8, 9, 6, 12, 8, 1],
+    [14, 7, 5, 14, 12, 7, 1, 12],
+    [6, 6, 9, 0, 11, 6, 0, 7],
+    [11, 8, 12, 3, 2, 0, 7, 15],
+    [8, 2, 15, 11, 5, 9, 5, 5],
+    [12, 12, 14, 2, 3, 11, 9, 3]
+]
+def char_code(ch):
+    upper = "АБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ"
+    lower = upper.lower()
+    if ch == " ":
+        return 32
+    if ch in upper:
+        return 192 + upper.index(ch)
+    if ch in lower:
+        return 224 + lower.index(ch)
+    raise ValueError(f"Символ {ch!r} отсутствует в таблице приложения Б")
+
+def to_bytes(text):
+    return bytes(char_code(ch) for ch in text)
+
+def binary(value):
+    return format(value, "032b")
+
+def substitute(value):
+    result = 0
+
+    for i in range(8):
+        shift = 28 - 4 * i
+        nibble = (value >> shift) & 0xF
+        result |= SBOX[nibble][i] << shift
+
+    return result
+
+def rotate_left_11(value):
+    return ((value << 11) | (value >> 21)) & MASK
+
+def main():
+    text = input("Введите исходные данные (минимум 12 символов): ").upper()
+
+    if len(text) < 12:
+        print("Ошибка: необходимо минимум 12 символов.")
+        return
+
+    block = text[:8]
+
+    key_part = text[8:12]
+
+    data = to_bytes(block)
+    key_data = to_bytes(key_part)
+
+    L0 = int.from_bytes(data[:4], "big")
+    R0 = int.from_bytes(data[4:], "big")
+    X0 = int.from_bytes(key_data, "big")
+
+    print("\nПервый блок:", block)
+    print("Первый подключ:", key_part)
+    print("L0:", binary(L0))
+    print("R0:", binary(R0))
+    print("X0:", binary(X0))
+
+
+    summed = (R0 + X0) & MASK
+    print("\nR0 + X0 mod 2^32:")
+    print(binary(summed))
+
+
+    substituted = substitute(summed)
+    print("\nПосле подстановки:")
+    print(binary(substituted))
+
+ 
+    transformed = rotate_left_11(substituted)
+    print("\nПосле циклического сдвига:")
+    print(binary(transformed))
+
+ 
+    R1 = L0 ^ transformed
+    L1 = R0
+
+    print("\nРезультат первого цикла:")
+    print("L1:", binary(L1))
+    print("R1:", binary(R1))
+
+
+if __name__ == "__main__":
+    main()
+
+#Савин Владимир николаевич и криптография.
