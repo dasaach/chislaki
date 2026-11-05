@@ -1,0 +1,87 @@
+ALPHABET = "АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ"
+
+def letter_to_num(ch):
+    return ALPHABET.index(ch) + 1
+
+def num_to_letter(num):
+    return ALPHABET[num - 1]
+
+def power_mod(a, n, mod):
+    
+    p = 1
+    ak = a % mod
+    i = n
+    while i > 0:
+        s = i % 2
+        if s == 1:
+            p = (p * ak) % mod
+        ak = (ak * ak) % mod
+        i = (i - s) // 2
+    return p
+
+def extended_gcd(a, b):
+
+    if b == 0:
+        return a, 1, 0
+    g, x1, y1 = extended_gcd(b, a % b)
+    return g, y1, x1 - (a // b) * y1
+
+def gcd(a, b):
+    while b:
+        a, b = b, a % b
+    return a
+
+def main():
+    # I. Генерация ключей
+    p, q = 17, 23
+    n = p * q
+    phi = (p - 1) * (q - 1)
+
+    d = 25
+    if d >= phi or gcd(d, phi) != 1:
+        print("Ошибка: d должно быть < φ(n) и взаимно просто с φ(n).")
+        return
+
+    g, x, _ = extended_gcd(d, phi)
+    e = x % phi  # d*e ≡ 1 (mod φ(n))
+
+    print("=== Генерация ключей ===")
+    print(f"p = {p}, q = {q}")
+    print(f"n = p*q = {n}")
+    print(f"φ(n) = (p-1)(q-1) = {phi}")
+    print(f"d = {d}")
+    print(f"e = {e}  (проверка: d*e mod φ(n) = {(d * e) % phi})")
+    print(f"Открытый ключ: ({e}, {n})")
+    print(f"Секретный ключ: ({d}, {n})")
+
+    # II. Зашифрование
+    message = "ФДА"
+    numbers = [letter_to_num(ch) for ch in message]
+
+    print("\n=== Зашифрование ===")
+    print(f"Сообщение: {message}")
+    for ch, m in zip(message, numbers):
+        print(f"  {ch} -> {m}")
+    print(f"Числовое сообщение: {tuple(numbers)}")
+
+    cipher = []
+    for i, m in enumerate(numbers, 1):
+        c = power_mod(m, e, n)
+        cipher.append(c)
+        print(f"  C{i} = ({m}^{e}) mod {n} = {c}")
+    print(f"Криптограмма: {tuple(cipher)}")
+
+    # III. Расшифрование
+    print("\n=== Расшифрование ===")
+    decrypted = []
+    for i, c in enumerate(cipher, 1):
+        m = power_mod(c, d, n)
+        decrypted.append(m)
+        print(f"  M{i} = ({c}^{d}) mod {n} = {m}")
+
+    result = "".join(num_to_letter(m) for m in decrypted)
+    print(f"Числовое сообщение: {tuple(decrypted)}")
+    print(f"Расшифрованное сообщение: {result}")
+
+if __name__ == "__main__":
+    main()
