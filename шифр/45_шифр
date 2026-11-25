@@ -1,0 +1,125 @@
+ALPHABET = "АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ"
+
+
+def letter_to_num(ch):
+    return ALPHABET.index(ch) + 1
+
+
+def power_mod_verbose(a, power, mod):
+    """Быстрое возведение в степень по модулю с выводом таблицы шагов."""
+    print(f"  Вычисляем {a}^{power} mod {mod}:")
+    print(f"  {'k':<3}{'a_k':<30}{'i':<6}{'s':<4}p")
+
+    p = 1
+    ak = a % mod
+    ak_text = str(ak)
+    i = power
+    k = 1
+
+    while i > 0:
+        s = i % 2
+        if s == 1:
+            new_p = (p * ak) % mod
+            if p == 1:
+                p_text = str(new_p)
+            else:
+                p_text = f"{p}·{ak} = {p * ak} ≡ {new_p}"
+            p = new_p
+        else:
+            p_text = str(p)
+
+        print(f"  {k:<3}{ak_text:<30}{i:<6}{s:<4}{p_text}")
+
+        # подготовка a_k для следующей строки
+        raw = ak * ak
+        new_ak = raw % mod
+        ak_text = f"{ak}·{ak} = {raw}"
+        if raw != new_ak:
+            ak_text += f" ≡ {new_ak}"
+        ak = new_ak
+
+        i = (i - s) // 2
+        k += 1
+
+    print(f"  В конце i = 0, поэтому {a}^{power} mod {mod} = {p}\n")
+    return p
+
+
+def main():
+    # Параметры из задания №3
+    p, q = 17, 23
+    n = p * q
+    phi = (p - 1) * (q - 1)
+    d = 25     # секретный ключ (d, n)
+    e = 169    # открытый ключ (e, n)
+
+    message = "ФОМИЧЕВА"
+    h0 = 11    # вектор инициализации
+
+    print("=== Параметры (из задания №3) ===")
+    print(f"p = {p}, q = {q}")
+    print(f"n = p*q = {p}*{q} = {n}")
+    print(f"φ(n) = {phi}")
+    print(f"Открытый ключ: ({e}, {n})")
+    print(f"Секретный ключ: ({d}, {n})")
+    print(f"Проверка: d*e mod φ(n) = {(d * e) % phi}")
+
+    # ---------- Задание №4 ----------
+    print("\n=== Задание №4. Функция хеширования ===")
+    print(f"Хешируемое сообщение: «{message}»")
+    print(f"Вектор инициализации H0 = {h0}")
+    print("Формула: Hi = (H(i-1) + Mi)^2 mod n\n")
+
+    print("Буквы в числа (по номерам в алфавите):")
+    numbers = []
+    for i, ch in enumerate(message, 1):
+        num = letter_to_num(ch)
+        numbers.append(num)
+        print(f"  M{i}: {ch} -> {num}")
+    print(f"Последовательность: {tuple(numbers)}")
+
+    print("\nВычисление хеш-образа:")
+    h = h0
+    for i, m in enumerate(numbers, 1):
+        prev = h
+        total = prev + m
+        square = total ** 2
+        h = square % n
+        quotient = square // n
+        print(f"  H{i} = (H{i-1} + M{i})^2 mod n = ({prev} + {m})^2 mod {n} "
+              f"= {square} mod {n} = {h}   [{square} = {quotient}·{n} + {h}]")
+
+    print(f"\nХеш-образ сообщения «{message}», равный {h}")
+
+    # ---------- Задание №5 ----------
+    print("\n=== Задание №5. Электронная цифровая подпись (RSA) ===")
+    r = h
+    print(f"Хеш-образ фамилии r = {r}")
+    print(f"Секретный ключ ({d}, {n}); подпись: s = r^d mod n\n")
+
+    print("Создание подписи:")
+    s = power_mod_verbose(r, d, n)
+    print(f"Электронная цифровая подпись: s = {r}^{d} mod {n} = {s}")
+
+    print("\n--- Проверка ЭЦП ---")
+    print(f"Открытый ключ ({e}, {n}); находим r' = s^e mod n\n")
+    r_check = power_mod_verbose(s, e, n)
+    print(f"r' = {s}^{e} mod {n} = {r_check}")
+
+    print("\nСравнение:")
+    print(f"  хеш-образ сообщения r = {r}")
+    print(f"  найденное значение r' = {r_check}")
+
+    if r_check == r:
+        print("Хеш-образ совпадает с найденным значением, "
+              "поэтому подпись признаётся подлинной.")
+    else:
+        print("Значения не совпадают, подпись НЕ подлинная.")
+
+    print("\n=== Ответ ===")
+    print(f"1) хеш-образ = {h}")
+    print(f"2) подпись s = {s}")
+
+
+if __name__ == "__main__":
+    main()
